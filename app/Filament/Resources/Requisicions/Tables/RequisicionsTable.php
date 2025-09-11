@@ -17,14 +17,14 @@ class RequisicionsTable
         return $table
             ->columns([
                 \Filament\Tables\Columns\TextColumn::make('folio')->label('Folio'),
-                \Filament\Tables\Columns\TextColumn::make('fecha_creacion')->label('Fecha de Creación'),
+              //  \Filament\Tables\Columns\TextColumn::make('fecha_creacion')->label('Fecha de Creación'),
                 \Filament\Tables\Columns\TextColumn::make('fecha_recepcion')->label('Fecha de Recepción'),
-                \Filament\Tables\Columns\TextColumn::make('hora_recepcion')->label('Hora de Recepción'),
+               // \Filament\Tables\Columns\TextColumn::make('hora_recepcion')->label('Hora de Recepción'),
                 \Filament\Tables\Columns\TextColumn::make('concepto')->label('Concepto')->limit(30),
                 \Filament\Tables\Columns\TextColumn::make('departamento.nombre')->label('Departamento'),
                 \Filament\Tables\Columns\TextColumn::make('clasificacion.nombre')->label('Clasificación'),
                 \Filament\Tables\Columns\TextColumn::make('usuario.name')->label('Asignado a'),
-                \Filament\Tables\Columns\TextColumn::make('estatus.nombre')->label('Estatus'),
+                //\Filament\Tables\Columns\TextColumn::make('estatus.nombre')->label('Estatus'),
             ])
             ->filters([
                 TrashedFilter::make(),

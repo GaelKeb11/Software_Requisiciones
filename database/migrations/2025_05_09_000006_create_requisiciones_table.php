@@ -12,11 +12,11 @@ return new class extends Migration
             $table->id('id_requisicion');
             $table->string('folio')->unique();
             $table->date('fecha_creacion');
-            $table->date('fecha_recepcion');
-            $table->time('hora_recepcion');
+            $table->timestamp('fecha_recepcion')->useCurrent();
+            $table->timestamp('hora_recepcion')->useCurrent();
             $table->text('concepto');
             
-            // Foreign keys
+            // Foreign keys 
             $table->foreignId('id_departamento')->constrained('departamentos', 'id_departamento');
             $table->foreignId('id_clasificacion')->constrained('clasificaciones', 'id_clasificacion');
             $table->foreignId('id_usuario')->constrained('users');
