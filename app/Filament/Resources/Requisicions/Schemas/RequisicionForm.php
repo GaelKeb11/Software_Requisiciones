@@ -2,7 +2,19 @@
 
 namespace App\Filament\Resources\Requisicions\Schemas;
 
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TimePicker;
+use Filament\Forms\Components\ViewField;
+use Filament\Forms\Components\Field;
 use Filament\Schemas\Schema;
+use Filament\Support\Features;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Actions\Action;
 
 class RequisicionForm
 {
@@ -10,27 +22,105 @@ class RequisicionForm
     {
         return $schema
             ->components([
-                \Filament\Forms\Components\TextInput::make('folio')->required(),
-                \Filament\Forms\Components\DatePicker::make('fecha_creacion')->required(),
-                \Filament\Forms\Components\DatePicker::make('fecha_recepcion')
+                TextInput::make('folio')->required(),
+
+                DatePicker::make('fecha_creacion')->required(),
+
+                DatePicker::make('fecha_recepcion')
                     ->default(now()->toDateString())
                     ->readOnly()
                     ->hidden(),
-                \Filament\Forms\Components\TimePicker::make('hora_recepcion')
+
+                TimePicker::make('hora_recepcion')
                     ->default(now()->format('H:i'))
                     ->readOnly()
                     ->hidden(),
-                \Filament\Forms\Components\Textarea::make('concepto')->required(),
-                \Filament\Forms\Components\Select::make('id_departamento')
+
+                Textarea::make('concepto')->required(),
+
+                Select::make('id_departamento')
+                    ->label('Dependencia')
                     ->relationship('departamento', 'nombre')
+                    ->searchable()         // activa la búsqueda AJAX
+                    ->preload()            // muestra un listado inicial de opciones
+                    ->searchDebounce(300)      // espera 300ms tras teclear para filtrar
                     ->required(),
-                \Filament\Forms\Components\Select::make('id_clasificacion')
+
+                Select::make('id_clasificacion')
                     ->relationship('clasificacion', 'nombre')
+                    ->searchable()         // activa la búsqueda AJAX
+                    ->preload()            // muestra un listado inicial de opciones
+                    ->searchDebounce(300)
                     ->required(),
-                \Filament\Forms\Components\Select::make('id_usuario')
+
+                Select::make('id_usuario')
                     ->relationship('usuario', 'name'),
-                //\Filament\Forms\Components\Select::make('id_estatus')
-                   // ->relationship('estatus', 'nombre'),
+
+                // 📁 Documentos - Solo en creación
+                Repeater::make('documentos')
+                    ->label('Cargar Documentos')
+                    ->relationship('documentos')
+                    ->schema([
+                        FileUpload::make('ruta_archivo')
+                            ->label('Archivo')
+                            ->disk('public')
+                            ->directory('documentos')
+                            ->storeFileNamesIn('nombre_archivo')
+                            ->acceptedFileTypes([
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                'application/vnd.ms-excel.sheet.macroEnabled.12',
+                                'application/pdf',
+                                'image/jpeg',
+                            ])
+                            ->getUploadedFileNameForStorageUsing(
+                                fn($file) => md5($file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension()
+                            ),
+
+                        Select::make('tipo_documento')
+                            ->label('Tipo de Documento')
+                            ->options([
+                                'oficio' => 'Oficio',
+                                'factura' => 'Factura',
+                                'cotizacion' => 'Cotización',
+                                'otro' => 'Otro',
+                            ]),
+                    ])
+                    ->columns(2)
+                    ->addActionLabel('+ Agregar Documento')
+                    ->collapsible()
+                    ->visibleOn(['create']),
+
+                // 📑 Documentos existentes - Solo en edición
+                Repeater::make('documentos_relacionados')
+                    ->label('Documentos Adjuntos')
+                    ->relationship('documentos')
+                    ->schema([
+                        TextInput::make('nombre_archivo')
+                            ->label('Nombre del Archivo')
+                            ->disabled(),
+
+                        Select::make('tipo_documento')
+                            ->label('Tipo de Documento')
+                            ->options([
+                                'oficio' => 'Oficio',
+                                'factura' => 'Factura',
+                                'cotizacion' => 'Cotización',
+                                'otro' => 'Otro',
+                            ])
+                            ->required(),
+
+                        ViewField::make('descargar')
+                            ->label('')
+                            ->view('components.document-download')
+                            ->viewData(fn ($record) => [
+                                'url' => asset('storage/' . $record->ruta_archivo)
+                            ])
+                    ])
+                    ->columns(3)
+                    ->deletable()
+                    ->addable(false)
+                    ->reorderable(false)
+                    ->visibleOn(['edit'])
             ]);
     }
 }

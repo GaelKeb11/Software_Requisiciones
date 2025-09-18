@@ -25,6 +25,7 @@ class Requisicion extends Model
         'id_clasificacion',
         'id_usuario',
         'id_estatus'
+
     ];
 
     protected $casts = [
