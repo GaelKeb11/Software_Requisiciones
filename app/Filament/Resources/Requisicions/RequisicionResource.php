@@ -15,6 +15,8 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+
 
 class RequisicionResource extends Resource
 {
@@ -24,6 +26,12 @@ class RequisicionResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'App\Models\Recepcion\Requisicion';
 
+    public static function canViewAny(): bool
+    {
+        $user = Auth::user();
+        // Llama al método hasRole() del modelo User para verificar los permisos.
+        return $user->rol->nombre == 'Administrador' || $user->rol->nombre == 'Recepcionista';
+    }
     public static function form(Schema $schema): Schema
     {
         return RequisicionForm::configure($schema);

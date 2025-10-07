@@ -21,6 +21,9 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DownloadFileController;
 
+// Importa las clases necesarias para la autenticación de dos factores
+use Filament\Auth\MultiFactor\App\AppAuthentication;
+
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -60,6 +63,11 @@ class AdminPanelProvider extends PanelProvider
             ->routes(function () {
                 Route::get('/download-file/{file}', [DownloadFileController::class, 'download'])
                     ->name('download-file');
-            });
+            })
+            ->profile() // <-- Agrega esta línea para habilitar la página de perfil
+            // Agrega el método para habilitar la autenticación multifactor
+            ->multiFactorAuthentication([
+                AppAuthentication::make(),
+            ]);
     }
-}
+};

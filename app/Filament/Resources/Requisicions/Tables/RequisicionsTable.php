@@ -9,6 +9,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\SelectFilter;
 
 class RequisicionsTable
 {
@@ -28,6 +29,15 @@ class RequisicionsTable
             ])
             ->filters([
                 TrashedFilter::make(),
+                SelectFilter::make('id_departamento')
+                    ->label('Departamento')
+                    ->relationship('departamento', 'nombre'),
+                SelectFilter::make('id_clasificacion')
+                    ->label('Clasificación')
+                    ->relationship('clasificacion', 'nombre'),
+                SelectFilter::make('id_usuario')
+                    ->label('Asignado a')
+                    ->relationship('usuario', 'name'),
             ])
             ->recordActions([
                 EditAction::make(),

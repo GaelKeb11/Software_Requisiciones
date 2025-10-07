@@ -2,80 +2,127 @@
 
 namespace App\Models\Usuarios;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+
 use App\Models\Recepcion\Departamento;
 use App\Models\Usuarios\Rol;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar; // Se importa el contrato del avatar
+use Filament\Panel;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Support\Facades\URL;
 
-
-class User extends Authenticatable
+// CORRECCIÓN: 'HasAvatar' se añade a la lista de 'implements'.
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAvatar
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    // La línea 'use HasAvatar;' ha sido eliminada de aquí, ya que no es un Trait.
+    use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    protected $primaryKey = 'id_usuario'; // <-- Agregar clave primaria personalizada
+    protected $primaryKey = 'id_usuario';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'id_departamento', // <-- Nuevo campo
-        'id_rol',          // <-- Nuevo campo
+        'name', 'email', 'password', 'id_departamento', 'id_rol',
+        'apellido_paterno', 'apellido_materno', 'numero_telefonico',
+        'profile_photo_path',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
+
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', 'remember_token', 'app_authentication_secret',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'app_authentication_secret' => 'encrypted',
         ];
     }
-
-    protected function nombreCompleto(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => "{$this->name} {$this->apellido_paterno} {$this->apellido_materno}",
-        );
-    }
-
-    public function departamento()
+    
+    // ===============================================
+    // RELACIONES DE LA APLICACIÓN
+    // ===============================================
+    
+    public function departamento(): BelongsTo
     {
         return $this->belongsTo(Departamento::class, 'id_departamento');
     }
 
-
-    protected $attributes = [
-        'id_departamento' => 1, // Puedes poner el valor por defecto que desees
-        'id_rol' => 1,          // Puedes poner el valor por defecto que desees
-    ];
-
-    public function roles(): BelongsTo
+    public function rol(): BelongsTo
     {
         return $this->belongsTo(Rol::class, 'id_rol');
+    }
+
+    protected $attributes = [
+        'id_departamento' => 1,
+        'id_rol' => 1,
+    ];
+
+    // ===============================================
+    // ATRIBUTOS PERSONALIZADOS
+    // ===============================================
+
+    protected function nombreCompleto(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => trim("{$this->name} {$this->apellido_paterno} {$this->apellido_materno}"),
+        );
+    }
+    
+    // ===============================================
+    // MÉTODOS DE AUTORIZACIÓN DE FILAMENT
+    // ===============================================
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return in_array($this->rol->nombre, ['Administrador', 'Recepcionista']);
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return $this->rol->nombre === $role;
+    }
+
+    // ===============================================
+    // MÉTODOS REQUERIDOS POR HasAppAuthentication
+    // ===============================================
+
+    public function getAppAuthenticationSecret(): ?string
+    {
+        return $this->app_authentication_secret;
+    }
+
+    public function saveAppAuthenticationSecret(?string $secret): void
+    {
+        $this->app_authentication_secret = $secret;
+        $this->save();
+    }
+
+    public function getAppAuthenticationHolderName(): string
+    {
+        return $this->email;
+    }
+
+    // ===============================================
+    // MÉTODO REQUERIDO POR LA INTERFAZ HasAvatar
+    // ===============================================
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        if ($this->profile_photo_path) {
+            return URL::to(Storage::url($this->profile_photo_path));
+        }
+
+        // Genera un avatar por defecto con las iniciales del usuario
+        $nombreCompleto = trim("{$this->name} {$this->apellido_paterno} {$this->apellido_materno}");
+        return 'https://ui-avatars.com/api/?name=' . urlencode($nombreCompleto) . '&color=7F9CF5&background=EBF4FF';
     }
 }
