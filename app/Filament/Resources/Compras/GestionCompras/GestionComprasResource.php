@@ -60,11 +60,11 @@ class GestionComprasResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('folio')->searchable()->sortable(),
-                TextColumn::make('concepto')->searchable(),
+                TextColumn::make('folio')->label('Folio')->searchable()->sortable(),
+                TextColumn::make('concepto')->label('Concepto')->searchable(),
                 TextColumn::make('solicitante.name')->label('Solicitante'),
                 TextColumn::make('departamento.nombre')->label('Departamento'),
-                TextColumn::make('fecha_creacion')->date()->sortable(),
+                TextColumn::make('fecha_creacion')->label('Fecha de Creación')->date()->sortable(),
             ])
             ->filters([
                 //
@@ -84,11 +84,14 @@ class GestionComprasResource extends Resource
                                             ->schema([
                                                 Hidden::make('id_detalle_requisicion'),
                                                 TextInput::make('cantidad')
+                                                    ->label('Cantidad')
                                                     ->disabled()
                                                     ->numeric(),
                                                 TextInput::make('unidad_medida')
+                                                    ->label('Unidad de Medida')
                                                     ->disabled(),
                                                 TextInput::make('descripcion')
+                                                    ->label('Descripción')
                                                     ->disabled(),
                                                 TextInput::make('precio_unitario')
                                                     ->label('Precio Unitario')

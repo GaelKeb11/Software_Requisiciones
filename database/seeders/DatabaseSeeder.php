@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Usuarios\User;
+use App\Models\Usuarios\Usuario;
 use App\Models\Role;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
         \App\Models\Recepcion\Estatus::factory()->create(['nombre' => 'Asignada']);
         \App\Models\Recepcion\Requisicion::factory(20)->create();
 
-        User::create([
+        Usuario::create([
             'name' => 'Admin',
             'email' => 'admin@example.com',
             'password' => bcrypt('password'),

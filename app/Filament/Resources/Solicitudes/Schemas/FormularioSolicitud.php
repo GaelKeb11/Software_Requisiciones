@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Solicituds\Schemas;
+namespace App\Filament\Resources\Solicitudes\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -13,7 +13,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 
-class SolicitudForm
+class FormularioSolicitud
 {
     public static function configure(Schema $form): Schema
     {
@@ -60,6 +60,7 @@ class SolicitudForm
                                 ->label('')
                                 ->schema([
                                     TextInput::make('cantidad')
+                                        ->label('Cantidad')
                                         ->numeric()
                                         ->required()
                                         ->default(1),
@@ -71,6 +72,7 @@ class SolicitudForm
                                         ->required()
                                         ->columnSpan(2),
                                     TextInput::make('total')
+                                        ->label('Total')
                                         ->numeric()
                                         ->default(0)
                                         ->disabled(),

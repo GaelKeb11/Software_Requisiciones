@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Requisicions\Tables;
+namespace App\Filament\Resources\Requisiciones\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -17,10 +17,10 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use App\Filament\Resources\Requisicions\RequisicionResource;
+use App\Filament\Resources\Requisiciones\RequisicionResource;
 use Filament\Tables\Columns\TextColumn;
 
-class RequisicionsTable
+class TablaRequisiciones
 {
     public static function configure(Table $table): Table
     {

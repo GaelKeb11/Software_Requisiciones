@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\Solicituds\Pages;
+namespace App\Filament\Resources\Solicitudes\Pages;
 
-use App\Filament\Resources\Solicituds\SolicitudResource;
+use App\Filament\Resources\Solicitudes\SolicitudResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
-class ListSolicituds extends ListRecords
+class ListarSolicitudes extends ListRecords
 {
     protected static string $resource = SolicitudResource::class;
 

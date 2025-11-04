@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\Requisicions\Pages;
+namespace App\Filament\Resources\Requisiciones\Pages;
 
-use App\Filament\Resources\Requisicions\RequisicionResource;
+use App\Filament\Resources\Requisiciones\RequisicionResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
-class ListRequisicions extends ListRecords
+class ListarRequisiciones extends ListRecords
 {
     protected static string $resource = RequisicionResource::class;
 

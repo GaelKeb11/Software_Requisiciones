@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\Solicituds;
+namespace App\Filament\Resources\Solicitudes;
 
-use App\Filament\Resources\Solicituds\Pages\CreateSolicitud;
-use App\Filament\Resources\Solicituds\Pages\EditSolicitud;
-use App\Filament\Resources\Solicituds\Pages\ListSolicituds;
-use App\Filament\Resources\Solicituds\Schemas\SolicitudForm;
-use App\Filament\Resources\Solicituds\Tables\SolicitudsTable;
+use App\Filament\Resources\Solicitudes\Pages\CrearSolicitud;
+use App\Filament\Resources\Solicitudes\Pages\EditarSolicitud;
+use App\Filament\Resources\Solicitudes\Pages\ListarSolicitudes;
+use App\Filament\Resources\Solicitudes\Schemas\FormularioSolicitud;
+use App\Filament\Resources\Solicitudes\Tables\TablaSolicitudes;
 use App\Models\Recepcion\Requisicion;
 use BackedEnum;
 use Filament\Forms\Form; // <-- CAMBIO 1: Se importa la clase Form
@@ -15,7 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
-use App\Filament\Resources\Solicituds\RelationManagers\EstatusRelationManager;
+use App\Filament\Resources\Solicitudes\RelationManagers\EstatusRelationManager;
 
 
 
@@ -24,6 +24,7 @@ class SolicitudResource extends Resource
     protected static ?string $model = Requisicion::class;
     protected static ?string $navigationLabel = 'Mis Solicitudes';
     protected static ?string $modelLabel = 'Solicitud de Requisición';
+    protected static ?string $pluralModelLabel = 'Mis Solicitudes';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     protected static ?string $recordTitleAttribute = 'folio';
 
@@ -36,12 +37,12 @@ class SolicitudResource extends Resource
     // CAMBIO 2: La firma del método ahora usa Form
     public static function form(Schema $form): Schema
     {
-        return SolicitudForm::configure($form);
+        return FormularioSolicitud::configure($form);
     }
 
     public static function table(Table $table): Table
     {
-        return SolicitudsTable::configure($table);
+        return TablaSolicitudes::configure($table);
     }
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
@@ -64,9 +65,9 @@ class SolicitudResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListSolicituds::route('/'),
-            'create' => CreateSolicitud::route('/create'),
-            'edit' => EditSolicitud::route('/{record}/edit'),
+            'index' => ListarSolicitudes::route('/'),
+            'create' => CrearSolicitud::route('/create'),
+            'edit' => EditarSolicitud::route('/{record}/edit'),
         ];
     }
 }

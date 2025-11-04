@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\Solicituds\Pages;
+namespace App\Filament\Resources\Solicitudes\Pages;
 
-use App\Filament\Resources\Solicituds\SolicitudResource;
+use App\Filament\Resources\Solicitudes\SolicitudResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
-class EditSolicitud extends EditRecord
+class EditarSolicitud extends EditRecord
 {
     protected static string $resource = SolicitudResource::class;
 

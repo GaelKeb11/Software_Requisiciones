@@ -3,9 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Resources\Compras\GestionCompras\GestionComprasResource;
-use App\Filament\Resources\Requisicions\RequisicionResource;
-use App\Filament\Resources\Solicituds\SolicitudResource;
-use App\Models\Usuarios\User;
+use App\Filament\Resources\Requisiciones\RequisicionResource;
+use App\Filament\Resources\Solicitudes\SolicitudResource;
+use App\Models\Usuarios\Usuario;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;

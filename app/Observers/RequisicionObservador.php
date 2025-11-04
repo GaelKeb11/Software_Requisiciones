@@ -5,7 +5,7 @@ namespace App\Observers;
 use App\Models\Recepcion\Requisicion;
 use Illuminate\Support\Facades\Auth;
 
-class RequisicionObserver
+class RequisicionObservador
 {
     /**
      * Handle the Requisicion "created" event.

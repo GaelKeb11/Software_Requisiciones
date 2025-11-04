@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Usuarios\Schemas;
 
 use App\Models\Recepcion\Departamento;
 use App\Models\Usuarios\Rol;
-use App\Models\Usuarios\User;
+use App\Models\Usuarios\Usuario;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -189,7 +189,7 @@ class UsuariosForm
                                         $directorRolId = Rol::where('nombre', 'Director')->value('id_rol');
                                         $userId = $get('id_usuario');
 
-                                        $subQuery = User::where('id_rol', $directorRolId)->whereNotNull('id_departamento');
+                                        $subQuery = Usuario::where('id_rol', $directorRolId)->whereNotNull('id_departamento');
                                         if ($userId) {
                                             $subQuery->where('id_usuario', '!=', $userId);
                                         }

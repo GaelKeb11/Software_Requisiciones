@@ -19,12 +19,15 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Support\Facades\URL;
 
 // CORRECCIÓN: 'HasAvatar' se añade a la lista de 'implements'.
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAvatar
+class Usuario extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAvatar
 {
     // La línea 'use HasAvatar;' ha sido eliminada de aquí, ya que no es un Trait.
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     protected $primaryKey = 'id_usuario';
+
+    protected $table = 'users';
+    
 
     protected $fillable = [
         'name', 'email', 'password', 'id_departamento', 'id_rol',

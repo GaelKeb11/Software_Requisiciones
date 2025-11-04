@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Solicituds\Tables;
+namespace App\Filament\Resources\Solicitudes\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 
-class SolicitudsTable
+class TablaSolicitudes
 {
     public static function configure(Table $table): Table
     {

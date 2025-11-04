@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Requisicions\Schemas;
+namespace App\Filament\Resources\Requisiciones\Schemas;
 
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -17,7 +17,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 
 // La importación de Heroicon se elimina, ya que no es necesaria con la sintaxis corregida.
 
-class RequisicionForm
+class FormularioRequisicion
 {
     public static function configure(Schema $schema): Schema
     {
@@ -43,8 +43,12 @@ class RequisicionForm
                             ->icon('heroicon-o-clipboard-document-list')
                             ->schema([
                                 // Todos los campos principales van aquí dentro
-                                TextInput::make('folio')->required()->columnSpan(1),
-                                DatePicker::make('fecha_creacion')->required()->columnSpan(1),
+                                TextInput::make('folio')
+                                    ->label('Folio')
+                                    ->required()->columnSpan(1),
+                                DatePicker::make('fecha_creacion')
+                                    ->label('Fecha de Creación')
+                                    ->required()->columnSpan(1),
                                 Select::make('id_departamento')
                                     ->label('Dependencia')
                                     ->relationship('departamento', 'nombre')
@@ -53,12 +57,15 @@ class RequisicionForm
                                     ->required()
                                     ->columnSpan(1),
                                 Select::make('id_clasificacion')
+                                    ->label('Clasificación')
                                     ->relationship('clasificacion', 'nombre')
                                     ->searchable()
                                     ->preload()
                                     ->required()
                                     ->columnSpan(1),
-                                Textarea::make('concepto')->required()->columnSpanFull(),
+                                Textarea::make('concepto')
+                                    ->label('Concepto')
+                                    ->required()->columnSpanFull(),
                                 Select::make('id_usuario')
                                     ->relationship('usuario', 'name', function ($query) {
                                         return $query->whereHas('rol', function ($query) {

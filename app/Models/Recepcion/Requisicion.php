@@ -64,7 +64,7 @@ class Requisicion extends Model
 
     public function usuario(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Usuarios\User::class, 'id_usuario');
+        return $this->belongsTo(\App\Models\Usuarios\Usuario::class, 'id_usuario');
     }
 
     public function estatus(): BelongsTo

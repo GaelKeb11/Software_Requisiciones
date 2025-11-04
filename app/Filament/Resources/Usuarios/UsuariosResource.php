@@ -9,7 +9,7 @@ use App\Filament\Resources\Usuarios\Pages\ViewUsuarios;
 use App\Filament\Resources\Usuarios\Schemas\UsuariosForm;
 use App\Filament\Resources\Usuarios\Schemas\UsuariosInfolist;
 use App\Filament\Resources\Usuarios\Tables\UsuariosTable;
-use App\Models\Usuarios\User;
+use App\Models\Usuarios\Usuario;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -20,13 +20,17 @@ use Illuminate\Support\Facades\Auth;
 
 class UsuariosResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model = Usuario::class;
+
+    protected static ?string $navigationLabel = 'Usuarios';
+    protected static ?string $modelLabel = 'Usuario';
+    protected static ?string $pluralModelLabel = 'Usuarios';
 
     // Se cambió el ícono para que sea más representativo de los usuarios.
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     // Se ajustó para mostrar el nombre del usuario, que es más legible.
-    protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $recordTitleAttribute = 'nombreCompleto';
 
     /**
      * Controla la visibilidad del recurso en el panel.

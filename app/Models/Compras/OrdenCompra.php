@@ -3,7 +3,7 @@
 namespace App\Models\Compras;
 
 use App\Models\Recepcion\Requisicion;
-use App\Models\Usuarios\User;
+use App\Models\Usuarios\Usuario;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,7 +31,7 @@ class OrdenCompra extends Model
 
     public function gestor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_usuario_gestor', 'id');
+        return $this->belongsTo(Usuario::class, 'id_usuario_gestor', 'id');
     }
 
     public function detalles(): HasMany

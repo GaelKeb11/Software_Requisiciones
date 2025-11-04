@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\Requisicions;
+namespace App\Filament\Resources\Requisiciones;
 
-use App\Filament\Resources\Requisicions\Pages\CreateRequisicion;
-use App\Filament\Resources\Requisicions\Pages\EditRequisicion;
-use App\Filament\Resources\Requisicions\Pages\ListRequisicions;
-use App\Filament\Resources\Requisicions\Schemas\RequisicionForm;
-use App\Filament\Resources\Requisicions\Tables\RequisicionsTable;
+use App\Filament\Resources\Requisiciones\Pages\CrearRequisicion;
+use App\Filament\Resources\Requisiciones\Pages\EditarRequisicion;
+use App\Filament\Resources\Requisiciones\Pages\ListarRequisiciones;
+use App\Filament\Resources\Requisiciones\Schemas\FormularioRequisicion;
+use App\Filament\Resources\Requisiciones\Tables\TablaRequisiciones;
 use App\Models\Recepcion\Requisicion;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -25,9 +25,13 @@ class RequisicionResource extends Resource
 {
     protected static ?string $model = Requisicion::class;
 
+    protected static ?string $navigationLabel = 'Requisiciones';
+    protected static ?string $modelLabel = 'Requisición';
+    protected static ?string $pluralModelLabel = 'Requisiciones';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'App\Models\Recepcion\Requisicion';
+    protected static ?string $recordTitleAttribute = 'folio';
 
     public static function canViewAny(): bool
     {
@@ -37,12 +41,12 @@ class RequisicionResource extends Resource
     }
     public static function form(Schema $schema): Schema
     {
-        return RequisicionForm::configure($schema);
+        return FormularioRequisicion::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return RequisicionsTable::configure($table);
+        return TablaRequisiciones::configure($table);
     }
 
     public static function getRelations(): array
@@ -55,8 +59,8 @@ class RequisicionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListRequisicions::route('/'),
-            'create' => CreateRequisicion::route('/create'),
+            'index' => ListarRequisiciones::route('/'),
+            'create' => CrearRequisicion::route('/create'),
             'asignar' => Pages\AsignarRequisicion::route('/{record}/asignar'),
         ];
     }

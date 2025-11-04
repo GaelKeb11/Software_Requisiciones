@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Requisicions\Pages;
+namespace App\Filament\Resources\Requisiciones\Pages;
 
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\Select;
@@ -9,8 +9,8 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Resources\Pages\EditRecord;
 use App\Models\Recepcion\Requisicion;
-use App\Filament\Resources\Requisicions\RequisicionResource;
-use App\Models\Usuarios\User;
+use App\Filament\Resources\Requisiciones\RequisicionResource;
+use App\Models\Usuarios\Usuario;
 
 class AsignarRequisicion extends EditRecord
 {
