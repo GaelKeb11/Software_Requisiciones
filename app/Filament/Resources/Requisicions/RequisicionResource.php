@@ -16,6 +16,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 
 
 class RequisicionResource extends Resource
@@ -54,7 +57,7 @@ class RequisicionResource extends Resource
         return [
             'index' => ListRequisicions::route('/'),
             'create' => CreateRequisicion::route('/create'),
-            'edit' => EditRequisicion::route('/{record}/edit'),
+            'asignar' => Pages\AsignarRequisicion::route('/{record}/asignar'),
         ];
     }
 
@@ -64,5 +67,22 @@ class RequisicionResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery();
+    }
+
+    public static function getFormSchema(): array
+    {
+        return [
+            // Todos los campos deshabilitados por defecto
+            TextInput::make('folio')->disabled(),
+            DatePicker::make('fecha_creacion')->disabled(),
+            DatePicker::make('fecha_recepcion')->disabled(),
+            TextInput::make('hora_recepcion')->disabled(),
+            Textarea::make('concepto')->disabled(),
+        ];
     }
 }

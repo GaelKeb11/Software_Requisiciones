@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Solicitud\DetalleRequisicion;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Recepcion\Estatus;
 
 class Requisicion extends Model
 {
@@ -24,14 +27,30 @@ class Requisicion extends Model
         'id_departamento',
         'id_clasificacion',
         'id_usuario',
-        'id_estatus'
-
+        'id_estatus',
+        'id_solicitante'
     ];
 
     protected $casts = [
         'fecha_creacion' => 'date',
         'fecha_recepcion' => 'date',
+        
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($requisicion) {
+            $user = Auth::user();
+            if (Auth::check()) {
+                $requisicion->id_solicitante = Auth::id();
+                $requisicion->id_departamento = $user->id_departamento;
+                $requisicion->id_estatus = 1;
+            } else {
+                throw new \Exception('Usuario no autenticado');
+            }
+            
+        });
+    }
 
     public function departamento(): BelongsTo
     {
@@ -56,5 +75,11 @@ class Requisicion extends Model
     public function documentos(): HasMany
     {
         return $this->hasMany(Documento::class, 'id_requisicion');
+    }
+    
+
+    public function detalles(): HasMany
+    {
+        return $this->hasMany(DetalleRequisicion::class, 'id_requisicion');
     }
 }

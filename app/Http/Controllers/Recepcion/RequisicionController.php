@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Recepcion\Departamento;
 use App\Models\Recepcion\Clasificacion;
 use App\Models\Recepcion\Estatus;
-use App\Models\User;
+use App\Models\Usuarios\User;
 use App\Http\Requests\Recepcion\StoreRequisicionRequest;
 use App\Http\Requests\Recepcion\UpdateRequisicionRequest;
 

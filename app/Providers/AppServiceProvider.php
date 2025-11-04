@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Recepcion\Requisicion;
 use App\Models\Recepcion\Documento;
+use App\Observers\RequisicionObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,5 +26,8 @@ class AppServiceProvider extends ServiceProvider
     Requisicion::resolveRelationUsing('documentos', function ($requisicionModel) {
         return $requisicionModel->hasMany(Documento::class, 'id_requisicion');
     });
+       //para que llame a la funcion de folio automatico
+    Requisicion::observe(RequisicionObserver::class);
+
     }
 }

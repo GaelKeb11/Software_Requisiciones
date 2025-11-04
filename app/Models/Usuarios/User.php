@@ -62,8 +62,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     protected $attributes = [
-        'id_departamento' => 1,
-        'id_rol' => 1,
+        'id_departamento' => null,
+        'id_rol' => null,
     ];
 
     // ===============================================
@@ -83,7 +83,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return in_array($this->rol->nombre, ['Administrador', 'Recepcionista']);
+        return $this->rol && in_array($this->rol->nombre, ['Administrador', 'Recepcionista', 'Gestor de Compras','Solicitante']);
     }
 
     public function hasRole(string $role): bool

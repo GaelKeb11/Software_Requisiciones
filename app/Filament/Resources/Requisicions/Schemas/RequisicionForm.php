@@ -10,11 +10,12 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\ViewField;
-use Filament\Forms\Components\Field;
+
 use Filament\Schemas\Schema;
-use Filament\Support\Features;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Actions\Action;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+
+// La importación de Heroicon se elimina, ya que no es necesaria con la sintaxis corregida.
 
 class RequisicionForm
 {
@@ -22,10 +23,7 @@ class RequisicionForm
     {
         return $schema
             ->components([
-                TextInput::make('folio')->required(),
-
-                DatePicker::make('fecha_creacion')->required(),
-
+                // 3. Los campos ocultos se mantienen fuera de las pestañas para que siempre se procesen.
                 DatePicker::make('fecha_recepcion')
                     ->default(now()->toDateString())
                     ->readOnly()
@@ -36,91 +34,87 @@ class RequisicionForm
                     ->readOnly()
                     ->hidden(),
 
-                Textarea::make('concepto')->required(),
+                // 4. Se crea el componente principal de Pestañas (Tabs)
+                Tabs::make('Crear Requisición')
+                    ->tabs([
+                        // 5. PESTAÑA 1: DETALLES DE LA REQUISICIÓN
+                        Tab::make('Detalles de la Requisición')
+                            // CORRECCIÓN: Se usa el nombre completo del ícono como una cadena de texto.
+                            ->icon('heroicon-o-clipboard-document-list')
+                            ->schema([
+                                // Todos los campos principales van aquí dentro
+                                TextInput::make('folio')->required()->columnSpan(1),
+                                DatePicker::make('fecha_creacion')->required()->columnSpan(1),
+                                Select::make('id_departamento')
+                                    ->label('Dependencia')
+                                    ->relationship('departamento', 'nombre')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->columnSpan(1),
+                                Select::make('id_clasificacion')
+                                    ->relationship('clasificacion', 'nombre')
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->columnSpan(1),
+                                Textarea::make('concepto')->required()->columnSpanFull(),
+                                Select::make('id_usuario')
+                                    ->relationship('usuario', 'name', function ($query) {
+                                        return $query->whereHas('rol', function ($query) {
+                                            $query->where('nombre', 'Gestor de Compras');
+                                        });
+                                    })
+                                    ->label('Asignado a')
+                                    ->searchable()
+                                    ->preload()
+                                    ->columnSpanFull(),
+                            ])->columns(2),
 
-                Select::make('id_departamento')
-                    ->label('Dependencia')
-                    ->relationship('departamento', 'nombre')
-                    ->searchable()         // activa la búsqueda AJAX
-                    ->preload()            // muestra un listado inicial de opciones
-                    ->searchDebounce(300)      // espera 300ms tras teclear para filtrar
-                    ->required(),
+                        // 6. PESTAÑA 2: DOCUMENTOS ADJUNTOS
+                        Tab::make('Documentos Adjuntos')
+                            // CORRECCIÓN: Se usa el nombre completo del ícono como una cadena de texto.
+                            ->icon('heroicon-o-paper-clip')
+                            ->schema([
+                                // Ambos Repeaters (para crear y editar) van en esta pestaña.
+                                // Filament mostrará solo el que corresponda gracias a la lógica 'visibleOn'.
+                                Repeater::make('documentos')
+                                    ->label('Cargar Nuevos Documentos')
+                                    ->relationship('documentos')
+                                    ->schema([
+                                        FileUpload::make('ruta_archivo')
+                                            ->label('Archivo')
+                                            ->disk('public')
+                                            ->directory('documentos')
+                                            ->storeFileNamesIn('nombre_archivo')
+                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                                            ->getUploadedFileNameForStorageUsing(
+                                                fn($file) => md5($file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension()
+                                            ),
+                                        Select::make('tipo_documento')
+                                            ->label('Tipo de Documento')
+                                            ->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro']),
+                                    ])
+                                    ->columns(2)
+                                    ->addActionLabel('+ Agregar Documento')
+                                    ->collapsible()
+                                    ->visibleOn('create'),
 
-                Select::make('id_clasificacion')
-                    ->relationship('clasificacion', 'nombre')
-                    ->searchable()         // activa la búsqueda AJAX
-                    ->preload()            // muestra un listado inicial de opciones
-                    ->searchDebounce(300)
-                    ->required(),
-
-                Select::make('id_usuario')
-                    ->relationship('usuario', 'name'),
-
-                // 📁 Documentos - Solo en creación
-                Repeater::make('documentos')
-                    ->label('Cargar Documentos')
-                    ->relationship('documentos')
-                    ->schema([
-                        FileUpload::make('ruta_archivo')
-                            ->label('Archivo')
-                            ->disk('public')
-                            ->directory('documentos')
-                            ->storeFileNamesIn('nombre_archivo')
-                            ->acceptedFileTypes([
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                'application/vnd.ms-excel.sheet.macroEnabled.12',
-                                'application/pdf',
-                                'image/jpeg',
-                            ])
-                            ->getUploadedFileNameForStorageUsing(
-                                fn($file) => md5($file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension()
-                            ),
-
-                        Select::make('tipo_documento')
-                            ->label('Tipo de Documento')
-                            ->options([
-                                'oficio' => 'Oficio',
-                                'factura' => 'Factura',
-                                'cotizacion' => 'Cotización',
-                                'otro' => 'Otro',
+                                Repeater::make('documentos_relacionados')
+                                    ->label('Documentos Existentes')
+                                    ->relationship('documentos')
+                                    ->schema([
+                                        TextInput::make('nombre_archivo')->label('Nombre del Archivo')->disabled(),
+                                        Select::make('tipo_documento')->label('Tipo de Documento')->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro'])->required(),
+                                        ViewField::make('descargar')->label('')->view('components.document-download')->viewData(fn ($record) => ['url' => asset('storage/' . $record->ruta_archivo)])
+                                    ])
+                                    ->columns(3)
+                                    ->deletable()
+                                    ->addable(false)
+                                    ->reorderable(false)
+                                    ->visibleOn('edit'),
                             ]),
-                    ])
-                    ->columns(2)
-                    ->addActionLabel('+ Agregar Documento')
-                    ->collapsible()
-                    ->visibleOn(['create']),
-
-                // 📑 Documentos existentes - Solo en edición
-                Repeater::make('documentos_relacionados')
-                    ->label('Documentos Adjuntos')
-                    ->relationship('documentos')
-                    ->schema([
-                        TextInput::make('nombre_archivo')
-                            ->label('Nombre del Archivo')
-                            ->disabled(),
-
-                        Select::make('tipo_documento')
-                            ->label('Tipo de Documento')
-                            ->options([
-                                'oficio' => 'Oficio',
-                                'factura' => 'Factura',
-                                'cotizacion' => 'Cotización',
-                                'otro' => 'Otro',
-                            ])
-                            ->required(),
-
-                        ViewField::make('descargar')
-                            ->label('')
-                            ->view('components.document-download')
-                            ->viewData(fn ($record) => [
-                                'url' => asset('storage/' . $record->ruta_archivo)
-                            ])
-                    ])
-                    ->columns(3)
-                    ->deletable()
-                    ->addable(false)
-                    ->reorderable(false)
-                    ->visibleOn(['edit'])
+                    ])->columnSpanFull(), // Asegura que las pestañas ocupen todo el ancho
             ]);
     }
 }
