@@ -2,6 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\Compras\GestionCompras\GestionComprasResource;
+use App\Filament\Resources\Requisiciones\RequisicionResource;
+use App\Filament\Resources\Solicitudes\SolicitudResource;
+use App\Models\Usuarios\Usuario;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -18,6 +22,11 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DownloadFileController;
+
+// Importa las clases necesarias para la autenticación de dos factores
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -31,7 +40,10 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->resources([
+                //
+            ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
@@ -54,6 +66,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->routes(function () {
+                Route::get('/download-file/{file}', [DownloadFileController::class, 'download'])
+                    ->name('download-file');
+            })
+            ->profile() // <-- Agrega esta línea para habilitar la página de perfil
+            // Agrega el método para habilitar la autenticación multifactor
+            ->multiFactorAuthentication([
+                AppAuthentication::make(),
             ]);
     }
-}
+};

@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('America/Merida');
+
 return [
 
     /*
@@ -65,7 +67,7 @@ return [
     |
     */
 
-    'timezone' => env('APP_TIMEZONE', 'UTC'),
+    'timezone' => env('APP_TIMEZONE', 'America/Merida'),
 
     /*
     |--------------------------------------------------------------------------

@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Models\Usuarios\Usuario;
+use App\Models\Role;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,9 +16,23 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+       // User::factory()->create([
+            //'name' => 'Test User',
+            //'email' => 'test@example.com',
+        //]);
+
+        \App\Models\Recepcion\Departamento::factory(5)->create();
+        \App\Models\Recepcion\Clasificacion::factory(3)->create();
+        \App\Models\Recepcion\Estatus::factory()->create(['nombre' => 'Recepcionada']);
+        \App\Models\Recepcion\Estatus::factory()->create(['nombre' => 'Asignada']);
+        \App\Models\Recepcion\Requisicion::factory(20)->create();
+
+        Usuario::create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'id_departamento' => 1, // <-- Nuevo campo
+            'id_rol' => 1,          // <-- Nuevo campo
         ]);
     }
 }
