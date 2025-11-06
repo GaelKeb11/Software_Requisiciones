@@ -13,12 +13,12 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Actions\Action;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Enums\FiltersLayout;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\Requisiciones\RequisicionResource;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\BadgeColumn;
 
 class TablaRequisiciones
 {
@@ -32,23 +32,23 @@ class TablaRequisiciones
                 TextColumn::make('departamento.nombre')->label('Departamento'),
                 TextColumn::make('clasificacion.nombre')->label('Clasificación'),
                 TextColumn::make('usuario.name')->label('Asignado a'),
-                TextColumn::make('estatus.nombre')->label('Estatus'),
+                BadgeColumn::make('estatus.nombre')
+                    ->label('Estatus')
+                    ->color(fn (string $state): string => match ($state) {
+                        'Recepcionada' => 'gray',
+                        'Pendientes' => 'warning',
+                        'Asignada' => 'info',
+                        'En Cotización' => 'info',
+                        'En Revisión' => 'primary',
+                        'Rechazada' => 'danger',
+                        'Aprobada' => 'success',
+                        'Completada' => 'success',
+                        default => 'secondary',
+                    }),
             ])
             ->filters([
-                // Tabs de conteo (se muestran arriba)
-                Filter::make('pendientes')
-                    ->label(fn () => 'Pendientes (' . \App\Models\Recepcion\Requisicion::where('id_estatus', 1)->count() . ')')
-                    ->query(fn (Builder $query) => $query->where('id_estatus', 1))
-                    ->default(),
-
-                Filter::make('cotizacion')
-                    ->label(fn () => 'En Cotización (' . \App\Models\Recepcion\Requisicion::where('id_estatus', 4)->count() . ')')
-                    ->query(fn (Builder $query) => $query->where('id_estatus', 4)),
-
-                Filter::make('rechazadas')
-                    ->label(fn () => 'Rechazadas (' . \App\Models\Recepcion\Requisicion::where('id_estatus', 6)->count() . ')')
-                    ->query(fn (Builder $query) => $query->where('id_estatus', 6)),
-            ], layout: FiltersLayout::AboveContent)
+                // Los filtros se han movido a la página de listado (ListarRequisiciones.php) como Tabs.
+            ])
             ->filtersFormColumns(3)
             ->recordActions([
                 Action::make('asignar')

@@ -64,8 +64,14 @@ class FormularioSolicitud
                                         ->numeric()
                                         ->required()
                                         ->default(1),
-                                    TextInput::make('unidad_medida')
+                                    Select::make('unidad_medida')
                                         ->label('Unidad (Pza, Caja, etc.)')
+                                        ->options([
+                                            'Materiales	' => 'Materiales',
+                                            'Servicios' => 'Servicios',
+                                            'Equipos' => 'Equipos',
+                                            'Otro' => 'Otros',
+                                        ])
                                         ->required(),
                                     TextInput::make('descripcion')
                                         ->label('Descripción del Artículo')

@@ -10,6 +10,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\ViewField;
+use Filament\Forms\Set;
+use App\Models\Recepcion\Departamento;
 
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
@@ -55,6 +57,19 @@ class FormularioRequisicion
                                     ->searchable()
                                     ->preload()
                                     ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($set, $state) {
+                                        if ($state) {
+                                            $departamento = Departamento::find($state);
+                                            if ($departamento && $departamento->prefijo) {
+                                                $set('folio', $departamento->prefijo . '-' . now()->year . '-');
+                                            } else {
+                                                $set('folio', null);
+                                            }
+                                        } else {
+                                            $set('folio', null);
+                                        }
+                                    })
                                     ->columnSpan(1),
                                 Select::make('id_clasificacion')
                                     ->label('Clasificación')
