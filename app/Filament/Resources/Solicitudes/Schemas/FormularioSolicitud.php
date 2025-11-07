@@ -37,6 +37,8 @@ class FormularioSolicitud
                             Textarea::make('concepto')
                                 ->label('Concepto General')
                                 ->required()
+                                ->minLength(10) // Validación de longitud mínima
+                                ->maxLength(500) // Validación de longitud máxima
                                 ->columnSpanFull(),
                             Select::make('id_clasificacion')
                                 ->label('Clasificación')
@@ -63,6 +65,7 @@ class FormularioSolicitud
                                         ->label('Cantidad')
                                         ->numeric()
                                         ->required()
+                                        ->minValue(1) // Validación de valor mínimo
                                         ->default(1),
                                     Select::make('unidad_medida')
                                         ->label('Unidad (Pza, Caja, etc.)')
@@ -76,6 +79,8 @@ class FormularioSolicitud
                                     TextInput::make('descripcion')
                                         ->label('Descripción del Artículo')
                                         ->required()
+                                        ->minLength(5) // Validación de longitud mínima
+                                        ->maxLength(255) // Validación de longitud máxima
                                         ->columnSpan(2),
                                     TextInput::make('total')
                                         ->label('Total')
