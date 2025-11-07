@@ -33,6 +33,7 @@ class UsuariosForm
                                     ->avatar()
                                     ->directory('profile-photos')
                                     ->disk('public')
+                                    ->maxSize(1024) // Limita el tamaño a 1MB
                                     ->columnSpanFull(),
                                 
                                 TextInput::make('name')
@@ -64,6 +65,7 @@ class UsuariosForm
                                     ->tel()
                                     ->numeric()
                                     ->rule('digits:10')
+                                    ->maxLength(10)
                                     ->unique(ignoreRecord: true)
                                     ->extraAttributes(['autocomplete' => 'nope']),
                                 
@@ -128,6 +130,7 @@ class UsuariosForm
                                     'Director' => 'Directores',
                                 ])
                                 ->live()
+                                ->required() // Este campo ahora es obligatorio
                                 ->dehydrated(false)
                                 ->afterStateUpdated(function ($set, $state) {
                                     // Resetear campos dependientes

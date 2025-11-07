@@ -47,7 +47,9 @@ class FormularioRequisicion
                                 // Todos los campos principales van aquí dentro
                                 TextInput::make('folio')
                                     ->label('Folio')
-                                    ->required()->columnSpan(1),
+                                    ->required()
+                                    ->maxLength(255) // Validación de longitud máxima
+                                    ->columnSpan(1),
                                 DatePicker::make('fecha_creacion')
                                     ->label('Fecha de Creación')
                                     ->required()->columnSpan(1),
@@ -80,7 +82,10 @@ class FormularioRequisicion
                                     ->columnSpan(1),
                                 Textarea::make('concepto')
                                     ->label('Concepto')
-                                    ->required()->columnSpanFull(),
+                                    ->required()
+                                    ->minLength(10) // Validación de longitud mínima
+                                    ->maxLength(500) // Validación de longitud máxima
+                                    ->columnSpanFull(),
                                 Select::make('id_usuario')
                                     ->relationship('usuario', 'name', function ($query) {
                                         return $query->whereHas('rol', function ($query) {
@@ -115,7 +120,7 @@ class FormularioRequisicion
                                             ),
                                         Select::make('tipo_documento')
                                             ->label('Tipo de Documento')
-                                            ->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro']),
+                                            ->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro'])
                                     ])
                                     ->columns(2)
                                     ->addActionLabel('+ Agregar Documento')
