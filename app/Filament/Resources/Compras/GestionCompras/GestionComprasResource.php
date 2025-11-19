@@ -45,7 +45,7 @@ class GestionComprasResource extends Resource
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user->rol->nombre === 'Gestor de Compras' || $user->rol->nombre === 'Administrador';
+        return $user->esGestorDeCompras() || $user->esAdministrador();
     }
 
     public static function form(Schema $schema): Schema

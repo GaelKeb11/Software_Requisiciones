@@ -9,7 +9,7 @@ use App\Filament\Resources\Solicitudes\Schemas\FormularioSolicitud;
 use App\Filament\Resources\Solicitudes\Tables\TablaSolicitudes;
 use App\Models\Recepcion\Requisicion;
 use BackedEnum;
-use Filament\Forms\Form; // <-- CAMBIO 1: Se importa la clase Form
+
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -31,10 +31,10 @@ class SolicitudResource extends Resource
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user->rol->nombre === 'Solicitante' || $user->rol->nombre === 'Administrador';
+        return $user->esSolicitante() || $user->esAdministrador();
     }
 
-    // CAMBIO 2: La firma del método ahora usa Form
+
     public static function form(Schema $form): Schema
     {
         return FormularioSolicitud::configure($form);
@@ -48,9 +48,13 @@ class SolicitudResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $user = Auth::user();
-        return parent::getEloquentQuery()
-            ->where('id_departamento', $user ? $user->id_departamento : 0);
+        $query = parent::getEloquentQuery();
 
+        if ($user && $user->rol->nombre === 'Solicitante') {
+            return $query->where('id_solicitante', $user->id_usuario);
+        }
+
+        return $query;
     }
 
     public static function getRelations(): array

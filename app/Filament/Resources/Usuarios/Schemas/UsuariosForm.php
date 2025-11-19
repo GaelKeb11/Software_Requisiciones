@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Password;
+use Filament\Forms\Components\Textarea;
  
 
 class UsuariosForm
@@ -162,13 +163,11 @@ class UsuariosForm
                                 ->dehydrated()
                                 ->live()
                                 ->afterStateUpdated(function ($get, $set, $state) {
-                                    // Si el rol es de Compras, pre-llenar y bloquear el departamento
-                                    if ($get('grupo_rol') === 'Compras') {
-                                        $rol = $state ? Rol::find($state) : null;
-                                        if ($rol && in_array($rol->nombre, ['Recepcionista', 'Gestor de Compras', 'Director'])) {
-                                            $comprasDept = Departamento::where('nombre', 'Compras')->first();
-                                            $set('id_departamento', $comprasDept?->id_departamento);
-                                        }
+                                    // Si se ha seleccionado un rol dentro del grupo de Compras,
+                                    // se asigna automáticamente el departamento de Compras.
+                                    if ($get('grupo_rol') === 'Compras' && filled($state)) {
+                                        $comprasDept = Departamento::where('nombre', 'Compras')->first();
+                                        $set('id_departamento', $comprasDept?->id_departamento);
                                     }
                                 })
                                 ->required()
@@ -180,33 +179,33 @@ class UsuariosForm
                                     $grupo = $get('grupo_rol');
                                     $query = Departamento::query();
 
-                                    if ($grupo === 'Compras') {
-                                        return $query->where('nombre', 'Compras')->pluck('nombre', 'id_departamento');
+                                    switch ($grupo) {
+                                        case 'Compras':
+                                            return $query->where('nombre', 'Compras')->pluck('nombre', 'id_departamento');
+
+                                        case 'Solicitante':
+                                            return $query->pluck('nombre', 'id_departamento');
+
+                                        case 'Director':
+                                            $directorRolId = Rol::where('nombre', 'Director')->value('id_rol');
+                                            $userId = $get('id_usuario');
+
+                                            $subQuery = Usuario::where('id_rol', $directorRolId)->whereNotNull('id_departamento');
+                                            if ($userId) {
+                                                $subQuery->where('id_usuario', '!=', $userId);
+                                            }
+                                            $occupiedDeptoIds = $subQuery->pluck('id_departamento');
+
+                                            return $query->whereNotIn('id_departamento', $occupiedDeptoIds)->pluck('nombre', 'id_departamento');
+                                        
+                                        default:
+                                            return [];
                                     }
-
-                                    if ($grupo === 'Solicitante') {
-                                        return $query->pluck('nombre', 'id_departamento');
-                                    }
-
-                                    if ($grupo === 'Director') {
-                                        $directorRolId = Rol::where('nombre', 'Director')->value('id_rol');
-                                        $userId = $get('id_usuario');
-
-                                        $subQuery = Usuario::where('id_rol', $directorRolId)->whereNotNull('id_departamento');
-                                        if ($userId) {
-                                            $subQuery->where('id_usuario', '!=', $userId);
-                                        }
-                                        $occupiedDeptoIds = $subQuery->pluck('id_departamento');
-
-                                        return $query->whereNotIn('id_departamento', $occupiedDeptoIds)->pluck('nombre', 'id_departamento');
-                                    }
-                                    
-                                    return [];
                                 })
-                                ->disabled(fn ($get) => $get('grupo_rol') === 'Compras')
                                 ->searchable(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director']))
                                 ->required()
                                 ->visible(fn ($get) => filled($get('grupo_rol'))),
+                    
                         ]),
                     ])->columnSpanFull(),
             ]);

@@ -9,8 +9,9 @@ use App\Filament\Resources\Requisiciones\Schemas\FormularioRequisicion;
 use App\Filament\Resources\Requisiciones\Tables\TablaRequisiciones;
 use App\Models\Recepcion\Requisicion;
 use BackedEnum;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
+
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Schema;
 
 
 class RequisicionResource extends Resource
@@ -36,8 +38,7 @@ class RequisicionResource extends Resource
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        // Llama al método hasRole() del modelo User para verificar los permisos.
-        return $user->rol->nombre == 'Administrador' || $user->rol->nombre == 'Recepcionista';
+        return $user->rol->nombre == 'Recepcionista' || $user->rol->nombre == 'Administrador';
     }
     public static function form(Schema $schema): Schema
     {

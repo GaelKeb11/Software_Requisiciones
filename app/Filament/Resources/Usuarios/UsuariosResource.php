@@ -38,8 +38,8 @@ class UsuariosResource extends Resource
      */
     public static function canViewAny(): bool
     {
-        // Llama al método hasRole() que definimos en el modelo User.
-        return Auth::user()->rol->nombre == 'Administrador';
+        // Se utiliza el método del Trait para una verificación más limpia.
+        return Auth::user()->esAdministrador();
     }
 
     public static function form(Schema $schema): Schema

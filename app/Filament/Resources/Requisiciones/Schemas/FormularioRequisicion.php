@@ -16,6 +16,9 @@ use App\Models\Recepcion\Departamento;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Usuarios\Usuario;
+
 
 // La importación de Heroicon se elimina, ya que no es necesaria con la sintaxis corregida.
 
@@ -48,8 +51,38 @@ class FormularioRequisicion
                                 TextInput::make('folio')
                                     ->label('Folio')
                                     ->required()
-                                    ->maxLength(255) // Validación de longitud máxima
-                                    ->columnSpan(1),
+                                    ->maxLength(255)
+                                    ->columnSpan(1)
+                                    ->readOnly(function () {
+                                        /** @var \App\Models\Usuarios\Usuario $user */
+                                        $user = Auth::user();
+                                        return !$user->esRecepcionista();
+                                    })
+                                    ->default(function () {
+                                        /** @var \App\Models\Usuarios\Usuario $user */
+                                        $user = Auth::user();
+                                        if ($user->esRecepcionista()) {
+                                            return null;
+                                        }
+
+                                        $departamento = $user->departamento;
+                                        if ($departamento && $departamento->prefijo) {
+                                            $prefix = $departamento->prefijo . '-' . now()->year;
+                                            $lastRequisicion = \App\Models\Recepcion\Requisicion::where('folio', 'like', $prefix . '-%')
+                                                ->latest('id_requisicion')
+                                                ->first();
+
+                                            $nextNumber = 1;
+                                            if ($lastRequisicion) {
+                                                $lastNumber = (int) last(explode('-', $lastRequisicion->folio));
+                                                $nextNumber = $lastNumber + 1;
+                                            }
+
+                                            $folioNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+                                            return $prefix . '-' . $folioNumber;
+                                        }
+                                        return null;
+                                    }),
                                 DatePicker::make('fecha_creacion')
                                     ->label('Fecha de Creación')
                                     ->required()->columnSpan(1),
@@ -59,17 +92,31 @@ class FormularioRequisicion
                                     ->searchable()
                                     ->preload()
                                     ->required()
+                                    ->disabled(function () {
+                                        /** @var \App\Models\Usuarios\Usuario $user */
+                                        $user = Auth::user();
+                                        return !$user->esRecepcionista();
+                                    })
+                                    ->default(function () {
+                                        /** @var \App\Models\Usuarios\Usuario $user */
+                                        $user = Auth::user();
+                                        return !$user->esRecepcionista() ? $user->id_departamento : null;
+                                    })
                                     ->live()
                                     ->afterStateUpdated(function ($set, $state) {
-                                        if ($state) {
-                                            $departamento = Departamento::find($state);
-                                            if ($departamento && $departamento->prefijo) {
-                                                $set('folio', $departamento->prefijo . '-' . now()->year . '-');
+                                        /** @var \App\Models\Usuarios\Usuario $user */
+                                        $user = Auth::user();
+                                        if ($user->esRecepcionista()) {
+                                            if ($state) {
+                                                $departamento = \App\Models\Recepcion\Departamento::find($state);
+                                                if ($departamento && $departamento->prefijo) {
+                                                    $set('folio', $departamento->prefijo . '-' . now()->year . '-');
+                                                } else {
+                                                    $set('folio', '');
+                                                }
                                             } else {
-                                                $set('folio', null);
+                                                $set('folio', '');
                                             }
-                                        } else {
-                                            $set('folio', null);
                                         }
                                     })
                                     ->columnSpan(1),

@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use App\Models\Recepcion\Requisicion;
 use App\Models\Recepcion\Documento;
 use App\Observers\RequisicionObservador;
+use Illuminate\Contracts\Auth\Authenticatable;
+use App\Models\Usuarios\Usuario;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(Authenticatable::class, Usuario::class);
     }
 
     /**
