@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Solicitud\DetalleRequisicion;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Recepcion\Estatus;
+use Illuminate\Support\Facades\Storage;
 
 class Requisicion extends Model
 {
@@ -50,6 +51,10 @@ class Requisicion extends Model
             }
             
         });
+
+        static::saved(function ($requisicion) {
+            // The document handling logic is removed as per the edit hint.
+        });
     }
 
     public function departamento(): BelongsTo
@@ -72,10 +77,7 @@ class Requisicion extends Model
         return $this->belongsTo(Estatus::class, 'id_estatus');
     }
 
-    public function documentos(): HasMany
-    {
-        return $this->hasMany(Documento::class, 'id_requisicion');
-    }
+    // The document relationship is removed as per the edit hint.
     
 
     public function detalles(): HasMany

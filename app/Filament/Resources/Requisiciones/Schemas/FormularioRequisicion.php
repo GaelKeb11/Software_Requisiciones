@@ -18,7 +18,12 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Usuarios\Usuario;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use App\Models\Recepcion\Documento;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Group;
+use Illuminate\Http\UploadedFile as TemporaryUploadedFile;
 
 // La importación de Heroicon se elimina, ya que no es necesaria con la sintaxis corregida.
 
@@ -144,50 +149,6 @@ class FormularioRequisicion
                                     ->preload()
                                     ->columnSpanFull(),
                             ])->columns(2),
-
-                        // 6. PESTAÑA 2: DOCUMENTOS ADJUNTOS
-                        Tab::make('Documentos Adjuntos')
-                            // CORRECCIÓN: Se usa el nombre completo del ícono como una cadena de texto.
-                            ->icon('heroicon-o-paper-clip')
-                            ->schema([
-                                // Ambos Repeaters (para crear y editar) van en esta pestaña.
-                                // Filament mostrará solo el que corresponda gracias a la lógica 'visibleOn'.
-                                Repeater::make('documentos')
-                                    ->label('Cargar Nuevos Documentos')
-                                    ->relationship('documentos')
-                                    ->schema([
-                                        FileUpload::make('ruta_archivo')
-                                            ->label('Archivo')
-                                            ->disk('public')
-                                            ->directory('documentos')
-                                            ->storeFileNamesIn('nombre_archivo')
-                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                            ->getUploadedFileNameForStorageUsing(
-                                                fn($file) => md5($file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension()
-                                            ),
-                                        Select::make('tipo_documento')
-                                            ->label('Tipo de Documento')
-                                            ->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro'])
-                                    ])
-                                    ->columns(2)
-                                    ->addActionLabel('+ Agregar Documento')
-                                    ->collapsible()
-                                    ->visibleOn('create'),
-
-                                Repeater::make('documentos_relacionados')
-                                    ->label('Documentos Existentes')
-                                    ->relationship('documentos')
-                                    ->schema([
-                                        TextInput::make('nombre_archivo')->label('Nombre del Archivo')->disabled(),
-                                        Select::make('tipo_documento')->label('Tipo de Documento')->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro'])->required(),
-                                        ViewField::make('descargar')->label('')->view('components.document-download')->viewData(fn ($record) => ['url' => asset('storage/' . $record->ruta_archivo)])
-                                    ])
-                                    ->columns(3)
-                                    ->deletable()
-                                    ->addable(false)
-                                    ->reorderable(false)
-                                    ->visibleOn('edit'),
-                            ]),
                     ])->columnSpanFull(), // Asegura que las pestañas ocupen todo el ancho
             ]);
     }

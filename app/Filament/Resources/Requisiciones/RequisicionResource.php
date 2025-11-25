@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Requisiciones;
 use App\Filament\Resources\Requisiciones\Pages\CrearRequisicion;
 use App\Filament\Resources\Requisiciones\Pages\EditarRequisicion;
 use App\Filament\Resources\Requisiciones\Pages\ListarRequisiciones;
+use App\Filament\Resources\Requisiciones\Pages\ViewRequisicion;
 use App\Filament\Resources\Requisiciones\Schemas\FormularioRequisicion;
 use App\Filament\Resources\Requisiciones\Tables\TablaRequisiciones;
 use App\Models\Recepcion\Requisicion;
@@ -21,6 +22,12 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Section;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 
 class RequisicionResource extends Resource
@@ -62,6 +69,7 @@ class RequisicionResource extends Resource
         return [
             'index' => ListarRequisiciones::route('/'),
             'create' => CrearRequisicion::route('/create'),
+            'view' => ViewRequisicion::route('/{record}'),
             'asignar' => Pages\AsignarRequisicion::route('/{record}/asignar'),
         ];
     }
@@ -90,4 +98,13 @@ class RequisicionResource extends Resource
             Textarea::make('concepto')->disabled(),
         ];
     }
+
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        // Actualizar solo la requisición principal
+        $record->update($data);
+        
+        return $record;
+    }
+
 }

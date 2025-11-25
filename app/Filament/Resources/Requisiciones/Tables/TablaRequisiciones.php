@@ -7,18 +7,20 @@ use Filament\Actions\DeleteBulkAction;
 
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ViewAction;
-use Filament\Actions\Action;
 
+use Filament\Tables\Table;
+
+use Filament\Actions\Action;
+use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\Requisiciones\RequisicionResource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+
+use Filament\Actions\ViewAction;
+
+
 
 class TablaRequisiciones
 {
@@ -51,6 +53,7 @@ class TablaRequisiciones
             ])
             ->filtersFormColumns(3)
             ->recordActions([
+                ViewAction::make(),
                 Action::make('asignar')
                     ->label('Asignar Encargado')
                     ->icon('heroicon-o-user-plus')
