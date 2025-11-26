@@ -21,6 +21,15 @@ class FormularioSolicitud
 
         return $form->schema([
             Tabs::make('Crear Solicitud')
+                ->disabled(function ($record) {
+                    if (!$record) return false;
+                    /** @var \App\Models\Usuarios\Usuario $user */
+                    $user = Auth::user();
+                    // Permitir editar siempre al Administrador
+                    if ($user->esAdministrador()) return false;
+                    // Bloquear al Solicitante si el estatus es >= 2 (Recibida/Enviada)
+                    return $record->id_estatus >= 2;
+                })
                 ->tabs([
                     Tab::make('Información General')
                         ->icon('heroicon-o-clipboard-document-list')

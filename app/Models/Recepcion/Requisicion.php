@@ -49,7 +49,9 @@ class Requisicion extends Model
             if (Auth::check()) {
                 $requisicion->id_solicitante = Auth::id();
                 $requisicion->id_departamento = $user->id_departamento;
-                $requisicion->id_estatus = 1;
+                if (!isset($requisicion->id_estatus)) {
+                    $requisicion->id_estatus = 2;
+                }
             } else {
                 throw new \Exception('Usuario no autenticado');
             }

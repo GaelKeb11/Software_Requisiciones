@@ -23,18 +23,21 @@ class ListarRequisiciones extends ListRecords
 
     public function getTabs(): array
     {
+        // Obtenemos el query base del recurso, que ya filtra los borradores si es Recepcionista
+        $baseQuery = static::getResource()::getEloquentQuery();
+
         return [
             'todos' => Tab::make('Todos')
-                ->badge(Requisicion::query()->count()),
-            'pendientes' => Tab::make('Pendientes')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 1))
-                ->badge(Requisicion::query()->where('id_estatus', 1)->count()),
-            'cotizacion' => Tab::make('En Cotización')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 4))
-                ->badge(Requisicion::query()->where('id_estatus', 4)->count()),
+                ->badge($baseQuery->clone()->count()),
+            'Recibida' => Tab::make('Recibida')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 2))
+                ->badge($baseQuery->clone()->where('id_estatus', 2)->count()),
+            'cotizacion' => Tab::make('Asignada/En Cotización')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 3))
+                ->badge($baseQuery->clone()->where('id_estatus', 3)->count()),
             'rechazadas' => Tab::make('Rechazadas')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 6))
-                ->badge(Requisicion::query()->where('id_estatus', 6)->count()),
+                ->badge($baseQuery->clone()->where('id_estatus', 6)->count()),
         ];
     }
 }

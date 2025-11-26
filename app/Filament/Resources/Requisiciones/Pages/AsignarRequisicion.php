@@ -49,7 +49,7 @@ class AsignarRequisicion extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $data['id_estatus'] = 4; // En Cotización
+        $data['id_estatus'] = 3; // Asignada / En Cotización (id_estatus = 3 según instrucciones)
         return $data;
     }
 

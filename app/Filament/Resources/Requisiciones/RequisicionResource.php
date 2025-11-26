@@ -84,7 +84,17 @@ class RequisicionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        $query = parent::getEloquentQuery();
+        
+        /** @var \App\Models\Usuarios\Usuario $user */
+        $user = Auth::user();
+
+        // Si el usuario es Recepcionista, ocultar los borradores (id_estatus = 1)
+        if ($user->esRecepcionista()) {
+            $query->where('id_estatus', '!=', 1);
+        }
+
+        return $query;
     }
 
     public static function getFormSchema(): array

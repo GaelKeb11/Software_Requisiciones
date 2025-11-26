@@ -26,3 +26,4 @@ class CrearRequisicion extends CreateRecord
         }
     }
 }
+

@@ -19,7 +19,7 @@ class RecepcionistaDashboardStats extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Por Recepcionar', Requisicion::whereHas('estatus', fn($q) => $q->where('nombre', 'Pendiente'))->count())
+            Stat::make('Por Recepcionar', Requisicion::whereHas('estatus', fn($q) => $q->where('nombre', 'Recibida'))->count())
                 ->description('Requisiciones pendientes de recepción')
                 ->icon('heroicon-o-inbox-arrow-down')
                 ->color('warning'),
@@ -28,6 +28,11 @@ class RecepcionistaDashboardStats extends BaseWidget
                 ->description('Requisiciones procesadas hoy')
                 ->icon('heroicon-o-clipboard-document-check')
                 ->color('success'),
+
+            Stat::make('Requisiciones Recibidas', Requisicion::where('id_estatus', 2)->count())
+                ->description('Total de requisiciones recibidas')
+                ->icon('heroicon-o-check-badge')
+                ->color('info'),
         ];
     }
 }

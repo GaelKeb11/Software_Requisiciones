@@ -84,8 +84,18 @@ class GestionComprasResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->where('id_estatus', 4);
+        $query = parent::getEloquentQuery();
+        
+        /** @var \App\Models\Usuarios\Usuario $user */
+        $user = Auth::user();
+
+        // Si es Gestor de Compras, filtrar las requisiciones asignadas y con los estatus permitidos
+        if ($user && $user->rol->nombre == 'Gestor de Compras') {
+            $query->where('id_usuario', $user->id_usuario) // Asignada a este gestor
+                  ->whereIn('id_estatus', [3, 4, 5]); // Estatus permitidos
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

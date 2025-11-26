@@ -22,7 +22,7 @@ class GestorComprasDashboardStats extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Por Cotizar', Requisicion::whereHas('estatus', fn($q) => $q->where('nombre', 'En cotización'))->count())
+            Stat::make('Por Cotizar', Requisicion::whereHas('estatus', fn($q) => $q->where('nombre', 'Asignada / En Cotización'))->count())
                 ->description('Requisiciones esperando cotización')
                 ->icon('heroicon-o-currency-dollar')
                 ->color('warning'),
