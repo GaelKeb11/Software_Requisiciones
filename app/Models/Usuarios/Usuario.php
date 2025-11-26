@@ -131,24 +131,4 @@ class Usuario extends Authenticatable implements FilamentUser, HasAppAuthenticat
         $nombreCompleto = trim("{$this->name} {$this->apellido_paterno} {$this->apellido_materno}");
         return 'https://ui-avatars.com/api/?name=' . urlencode($nombreCompleto) . '&color=7F9CF5&background=EBF4FF';
     }
-
-    public function esRecepcionista(): bool
-    {
-        return $this->rol->nombre == 'Recepcionista';
-    }
-
-    public function esAdministrador(): bool
-    {
-        return $this->rol->nombre == 'Administrador';
-    }
-
-    public function esSolicitante(): bool
-    {
-        return $this->rol->nombre == 'Solicitante';
-    }
-
-    public function esGestorDeCompras(): bool
-    {
-        return $this->rol->nombre == 'Gestor de compras';
-    }
 }

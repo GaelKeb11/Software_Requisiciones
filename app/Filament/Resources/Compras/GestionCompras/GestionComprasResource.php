@@ -45,7 +45,7 @@ class GestionComprasResource extends Resource
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user->esGestorDeCompras() || $user->esAdministrador();
+        return $user->rol->nombre == 'Gestor de Compras' || $user->rol->nombre == 'Administrador';
     }
 
     public static function form(Schema $schema): Schema
@@ -195,8 +195,7 @@ class GestionComprasResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('id_estatus', 4) // "En cotización"
-            ->where('id_usuario', Auth::id());
+            ->where('id_estatus', 4); // "En cotización"
     }
 
     public static function getPages(): array
