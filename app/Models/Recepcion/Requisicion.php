@@ -81,8 +81,10 @@ class Requisicion extends Model
         return $this->belongsTo(Estatus::class, 'id_estatus');
     }
 
-    // The document relationship is removed as per the edit hint.
-    
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(Documento::class, 'id_requisicion');
+    }
 
     public function detalles(): HasMany
     {

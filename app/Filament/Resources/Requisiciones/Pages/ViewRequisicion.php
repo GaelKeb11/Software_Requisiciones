@@ -12,6 +12,9 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\FileEntry;
+use Filament\Infolists\Components\UrlEntry;
 
 class ViewRequisicion extends ViewRecord
 {
@@ -41,6 +44,27 @@ class ViewRequisicion extends ViewRecord
                         }),
                         TextEntry::make('usuario.name')->label('Asignado a'),
                         TextEntry::make('concepto')->columnSpanFull(),
+                    ]),
+                Section::make('Documentos Adjuntos')
+                    ->schema([
+                        RepeatableEntry::make('documentos')
+                            ->label(false)
+                            ->schema([
+                                TextEntry::make('tipo_documento')
+                                    ->label('Tipo'),
+                                TextEntry::make('nombre_archivo')
+                                    ->label('Archivo')
+                                    ->formatStateUsing(fn ($state) => $state)
+                                    ->icon('heroicon-o-arrow-down-tray')
+                                    ->iconPosition('after')
+                                    ->url(fn (Model $record) => asset('storage/' . $record->ruta_archivo))
+                                    ->openUrlInNewTab()
+                                    ->color('primary'),
+                                TextEntry::make('comentarios')
+                                    ->label('Comentarios')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
                     ]),
             ]);
     }

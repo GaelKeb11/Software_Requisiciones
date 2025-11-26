@@ -149,6 +149,42 @@ class FormularioRequisicion
                                     ->preload()
                                     ->columnSpanFull(),
                             ])->columns(2),
+
+                        // 6. PESTAÑA 2: DOCUMENTOS
+                        Tab::make('Documentos')
+                            ->icon('heroicon-o-document-plus')
+                            ->schema([
+                                Repeater::make('documentos')
+                                    ->relationship()
+                                    ->schema([
+                                        Select::make('tipo_documento')
+                                            ->label('Tipo de Documento')
+                                            ->options([
+                                                'Cotización' => 'Cotización',
+                                                'Factura' => 'Factura',
+                                                'Comprobante' => 'Comprobante',
+                                                'Otro' => 'Otro',
+                                            ])
+                                            ->required(),
+                                        FileUpload::make('ruta_archivo')
+                                            ->label('Documento')
+                                            ->required()
+                                            ->storeFileNamesIn('nombre_archivo')
+                                            ->disk('public')
+                                            ->directory('requisiciones-documentos')
+                                            ->visibility('public')
+                                            ->downloadable()
+                                            ->openable(),
+                                        Textarea::make('comentarios')
+                                            ->label('Comentarios')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2)
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Agregar Documento')
+                                    ->itemLabel(fn (array $state): ?string => $state['nombre_archivo'] ?? null),
+                            ]),
                     ])->columnSpanFull(), // Asegura que las pestañas ocupen todo el ancho
             ]);
     }
