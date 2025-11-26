@@ -24,9 +24,13 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DownloadFileController;
-
+use App\Filament\Widgets\AdminDashboardStats;
+use App\Filament\Widgets\SolicitanteDashboardStats;
+use App\Filament\Widgets\RecepcionistaDashboardStats;
+use App\Filament\Widgets\GestorComprasDashboardStats;
 // Importa las clases necesarias para la autenticación de dos factores
 use Filament\Auth\MultiFactor\App\AppAuthentication;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -76,5 +80,14 @@ class AdminPanelProvider extends PanelProvider
             ->multiFactorAuthentication([
                 AppAuthentication::make(),
             ]);
+    }
+    protected function getWidgets(): array
+    {
+        return [
+            AdminDashboardStats::class,
+            SolicitanteDashboardStats::class,
+            RecepcionistaDashboardStats::class,
+            GestorComprasDashboardStats::class,
+        ];
     }
 };

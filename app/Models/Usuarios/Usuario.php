@@ -141,4 +141,14 @@ class Usuario extends Authenticatable implements FilamentUser, HasAppAuthenticat
     {
         return $this->rol->nombre == 'Administrador';
     }
+
+    public function esSolicitante(): bool
+    {
+        return $this->rol->nombre == 'Solicitante';
+    }
+
+    public function esGestorDeCompras(): bool
+    {
+        return $this->rol->nombre == 'Gestor de compras';
+    }
 }

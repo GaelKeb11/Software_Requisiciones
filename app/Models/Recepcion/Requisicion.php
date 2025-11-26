@@ -10,10 +10,14 @@ use App\Models\Solicitud\DetalleRequisicion;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Recepcion\Estatus;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
 
 class Requisicion extends Model
 {
     use SoftDeletes;
+    use LogsActivity;
 
     protected $table = 'requisiciones';
     protected $primaryKey = 'id_requisicion';
@@ -83,5 +87,13 @@ class Requisicion extends Model
     public function detalles(): HasMany
     {
         return $this->hasMany(DetalleRequisicion::class, 'id_requisicion');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['estado', 'comentarios'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }

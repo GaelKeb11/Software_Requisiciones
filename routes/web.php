@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DownloadFileController;
-
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\LogController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -29,4 +30,9 @@ Route::get('/update-user-password', function () {
     }
 
     return "Usuario con email {$email} no encontrado.";
+});
+
+Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('dashboard', [DashboardController::class, 'index']);
+    Route::get('logs', [LogController::class, 'index']);
 });
