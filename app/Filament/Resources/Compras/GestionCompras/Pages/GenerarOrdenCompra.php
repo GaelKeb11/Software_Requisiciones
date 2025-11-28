@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Compras\GestionCompras\Pages;
 
-use App\Filament\Resources\Compras\GestionCompras\GestionComprasResource;
 use App\Models\Compras\DetalleOrdenCompra;
 use App\Models\Compras\OrdenCompra;
 use App\Models\Recepcion\Documento;
@@ -29,7 +28,7 @@ use Illuminate\Support\Facades\Storage;
 
 class GenerarOrdenCompra extends Page
 {
-    protected static string $resource = GestionComprasResource::class;
+    protected static string $resource = \App\Filament\Resources\Compras\GestionCompras\GestionComprasResource::class;
 
     protected string $view = 'filament.resources.compras.gestion-compras.pages.generar-orden-compra';
 
@@ -303,7 +302,7 @@ class GenerarOrdenCompra extends Page
                 ->send();
 
             $this->form->fill(); // Reset form
-            $this->redirect(GestionComprasResource::getUrl('index')); // Redirect to index
+            $this->redirect(\App\Filament\Resources\Compras\GestionCompras\GestionComprasResource::getUrl('index')); // Redirect to index
 
         } catch (\Exception $e) {
             DB::rollBack();

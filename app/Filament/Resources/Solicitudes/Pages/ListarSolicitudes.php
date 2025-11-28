@@ -5,6 +5,9 @@ namespace App\Filament\Resources\Solicitudes\Pages;
 use App\Filament\Resources\Solicitudes\SolicitudResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListarSolicitudes extends ListRecords
 {
@@ -16,4 +19,5 @@ class ListarSolicitudes extends ListRecords
             CreateAction::make(),
         ];
     }
+
 }

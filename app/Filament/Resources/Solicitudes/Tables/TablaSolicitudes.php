@@ -2,15 +2,17 @@
 
 namespace App\Filament\Resources\Solicitudes\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+
 
 
 class TablaSolicitudes
@@ -42,8 +44,15 @@ class TablaSolicitudes
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                ViewAction::make()
+                    ->icon('heroicon-o-eye')
+                    ->color('primary')
+                    ->outlined(),
+                EditAction::make()
+                    ->icon('heroicon-o-pencil')
+                    ->color('primary')
+                    ->outlined(),
                 DeleteAction::make()
                     ->hidden(function ($record) {
                         /** @var \App\Models\Usuarios\Usuario $user */

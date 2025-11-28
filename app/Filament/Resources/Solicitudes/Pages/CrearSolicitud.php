@@ -5,49 +5,53 @@ namespace App\Filament\Resources\Solicitudes\Pages;
 use App\Filament\Resources\Solicitudes\SolicitudResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Actions\Action;
-use App\Models\Recepcion\Estatus;
+use Filament\Notifications\Notification;
 
 class CrearSolicitud extends CreateRecord
 {
     protected static string $resource = SolicitudResource::class;
 
-    public $statusId = 1;
-
-    protected function getFormActions(): array
+    protected function getHeaderActions(): array
     {
-        $colorBorrador = Estatus::find(1)?->color ?? 'secondary';
-        $colorRecibida = Estatus::find(2)?->color ?? 'primary';
-
         return [
-            $this->getCreateFormAction()
-                ->label('Guardar Borrador')
-                ->action('saveDraft')
-                ->color($colorBorrador),
-
             Action::make('enviar')
-                ->label('Enviar')
-                ->action('saveAndSend')
-                ->color($colorRecibida),
-
-            $this->getCancelFormAction(),
+                ->label('Enviar Solicitud')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('primary')
+                ->outlined()
+                ->requiresConfirmation()
+                ->modalHeading('Enviar Solicitud')
+                ->modalDescription('¿Está seguro de enviar esta solicitud? Una vez enviada, pasará al proceso de revisión.')
+                ->modalSubmitActionLabel('Sí, enviar')
+                ->action(function () {
+                    $this->data['id_estatus'] = 2; // 2 = Recibida/Enviada
+                    $this->create();
+                }),
         ];
     }
 
-    public function saveDraft()
+    protected function getFormActions(): array
     {
-        $this->statusId = 1;
+        return [
+            Action::make('borrador')
+                ->label('Guardar Borrador')
+                ->icon('heroicon-o-pencil')
+                ->color('warning')
+                ->outlined()
+                ->requiresConfirmation()
+                ->modalHeading('Guardar Borrador')
+                ->modalDescription('La solicitud se guardará como borrador y podrá editarla más tarde.')
+                ->modalSubmitActionLabel('Guardar')
+                ->action(function () {
+                    $this->data['id_estatus'] = 1; // 1 = Borrador
         $this->create();
-    }
+                }),
 
-    public function saveAndSend()
-    {
-        $this->statusId = 2;
-        $this->create();
-    }
-
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['id_estatus'] = $this->statusId;
-        return $data;
+            $this->getCancelFormAction()
+                ->label('Cancelar')
+                ->icon('heroicon-o-x-mark')
+                ->color('danger')
+                ->outlined(),
+        ];
     }
 }

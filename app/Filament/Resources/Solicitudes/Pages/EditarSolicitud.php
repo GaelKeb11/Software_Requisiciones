@@ -15,63 +15,70 @@ class EditarSolicitud extends EditRecord
 
     public $statusId = null;
 
+    protected function getHeaderActions(): array
+    {
+        $record = $this->getRecord();
+        $user = Auth::user();
+        $isEditable = $record->id_estatus < 2 || $user->rol->nombre === 'Administrador';
+
+        return [
+            Action::make('enviar')
+                ->label('Enviar Solicitud')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('primary')
+                ->outlined()
+                ->requiresConfirmation()
+                ->modalHeading('Enviar Solicitud')
+                ->modalDescription('¿Está seguro de enviar esta solicitud? Una vez enviada, pasará al proceso de revisión.')
+                ->modalSubmitActionLabel('Sí, enviar')
+                ->action(function () {
+                    $this->data['id_estatus'] = 2;
+                    $this->save();
+                })
+                ->visible($isEditable && $record->id_estatus == 1),
+
+            DeleteAction::make()
+                ->icon('heroicon-o-trash')
+                ->outlined()
+                ->visible($isEditable),
+        ];
+    }
+
     protected function getFormActions(): array
     {
         $record = $this->getRecord();
         $user = Auth::user();
+        $isEditable = $record->id_estatus < 2 || $user->rol->nombre === 'Administrador';
 
-        // Bloquear edición si ya fue enviada (estatus >= 2) y el usuario es Solicitante (o no es Admin)
-        // Asumimos que si no es Admin, es Solicitante y debe bloquearse.
-        if ($record->id_estatus >= 2 && !$user->esAdministrador()) {
+        if (!$isEditable) {
             return [
                 $this->getCancelFormAction()
-                    ->label('Regresar'),
+                    ->label('Regresar')
+                    ->icon('heroicon-o-arrow-left')
+                    ->outlined(),
             ];
         }
 
-        $colorBorrador = Estatus::find(1)?->color ?? 'secondary';
-        $colorRecibida = Estatus::find(2)?->color ?? 'primary';
-
         return [
-            $this->getSaveFormAction()
+            Action::make('borrador')
                 ->label('Guardar Borrador')
-                ->action('saveDraft')
-                ->color($colorBorrador),
+                ->icon('heroicon-o-pencil')
+                ->color('warning')
+                ->outlined()
+                ->requiresConfirmation()
+                ->modalHeading('Guardar Borrador')
+                ->modalDescription('Los cambios se guardarán en el borrador.')
+                ->modalSubmitActionLabel('Guardar')
+                ->action(function () {
+                    $this->data['id_estatus'] = 1;
+                    $this->save();
+                }),
 
-            Action::make('enviar')
-                ->label('Enviar')
-                ->action('saveAndSend')
-                ->color($colorRecibida),
-
-            $this->getCancelFormAction(),
-        ];
-    }
-
-    public function saveDraft()
-    {
-        $this->statusId = 1;
-        $this->save();
-    }
-
-    public function saveAndSend()
-    {
-        $this->statusId = 2;
-        $this->save();
-    }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        if ($this->statusId) {
-            $data['id_estatus'] = $this->statusId;
-        }
-        return $data;
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            DeleteAction::make()
-                ->hidden(fn ($record) => $record->id_estatus >= 2 && !Auth::user()->esAdministrador()),
+            $this->getCancelFormAction()
+                ->label('Cancelar')
+                ->icon('heroicon-o-x-mark')
+                ->color('danger')
+                ->outlined(),
         ];
     }
 }

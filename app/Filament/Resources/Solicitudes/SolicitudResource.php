@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Solicitudes;
 
 use App\Filament\Resources\Solicitudes\Pages\CrearSolicitud;
 use App\Filament\Resources\Solicitudes\Pages\EditarSolicitud;
+use App\Filament\Resources\Solicitudes\Pages\ViewSolicitud;
 use App\Filament\Resources\Solicitudes\Pages\ListarSolicitudes;
 use App\Filament\Resources\Solicitudes\Schemas\FormularioSolicitud;
 use App\Filament\Resources\Solicitudes\Tables\TablaSolicitudes;
@@ -19,6 +20,7 @@ use App\Filament\Resources\Solicitudes\RelationManagers\EstatusRelationManager;
 
 
 
+
 class SolicitudResource extends Resource
 {
     protected static ?string $model = Requisicion::class;
@@ -31,13 +33,16 @@ class SolicitudResource extends Resource
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user->esSolicitante() || $user->esAdministrador();
+        return $user && (
+            ($user->rol && $user->rol->nombre === 'Solicitante') ||
+            ($user->rol && $user->rol->nombre === 'Administrador')
+        );
     }
 
 
-    public static function form(Schema $form): Schema
+    public static function form(Schema $schema): Schema
     {
-        return FormularioSolicitud::configure($form);
+        return FormularioSolicitud::configure($schema);
     }
 
     public static function table(Table $table): Table
@@ -72,6 +77,7 @@ class SolicitudResource extends Resource
             'index' => ListarSolicitudes::route('/'),
             'create' => CrearSolicitud::route('/create'),
             'edit' => EditarSolicitud::route('/{record}/edit'),
+            'view' => ViewSolicitud::route('/{record}'),
         ];
     }
 }

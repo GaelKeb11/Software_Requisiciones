@@ -57,7 +57,8 @@ class TablaRequisiciones
                 Action::make('asignar')
                     ->label('Asignar Encargado')
                     ->icon('heroicon-o-user-plus')
-                    ->url(fn (Model $record): string => RequisicionResource::getUrl('asignar', ['record' => $record])),
+                    ->url(fn (Model $record): string => RequisicionResource::getUrl('asignar', ['record' => $record]))
+                    ->visible(fn (Model $record) => $record->id_usuario === null),
                 Action::make('rechazar')
                     ->label('Rechazar')
                     ->icon('heroicon-o-x-circle')
@@ -65,7 +66,8 @@ class TablaRequisiciones
                         $record->update(['id_estatus' => 6]);
                     })
                     ->requiresConfirmation()
-                    ->color('danger'),
+                    ->color('danger')
+                    ->visible(fn (Model $record) => $record->id_usuario === null),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

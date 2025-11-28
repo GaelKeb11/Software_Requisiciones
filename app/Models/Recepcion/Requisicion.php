@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Solicitud\DetalleRequisicion;
+use App\Models\Compras\Cotizacion;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Recepcion\Estatus;
 use Illuminate\Support\Facades\Storage;
@@ -91,6 +92,11 @@ class Requisicion extends Model
     public function detalles(): HasMany
     {
         return $this->hasMany(DetalleRequisicion::class, 'id_requisicion');
+    }
+
+    public function cotizaciones(): HasMany
+    {
+        return $this->hasMany(Cotizacion::class, 'id_requisicion');
     }
 
     public function getActivitylogOptions(): LogOptions

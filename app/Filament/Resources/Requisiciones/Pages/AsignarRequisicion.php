@@ -11,10 +11,29 @@ use Filament\Resources\Pages\EditRecord;
 use App\Models\Recepcion\Requisicion;
 use App\Filament\Resources\Requisiciones\RequisicionResource;
 use App\Models\Usuarios\Usuario;
+use Filament\Notifications\Notification;
 
 class AsignarRequisicion extends EditRecord
 {
     protected static string $resource = RequisicionResource::class;
+
+    public function mount(int | string $record): void
+    {
+        $this->record = $this->resolveRecord($record);
+
+        if ($this->record->id_usuario !== null) {
+            Notification::make()
+                ->title('Acceso denegado')
+                ->body('Esta requisición ya tiene un usuario asignado y no puede ser modificada.')
+                ->danger()
+                ->send();
+
+            $this->redirect(RequisicionResource::getUrl('index'));
+            return;
+        }
+
+        parent::mount($record);
+    }
 
     public function form(Schema $schema): Schema
     {

@@ -10,16 +10,18 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Hidden;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Schema;
+use Filament\Forms\Form;
+use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Support\Facades\Auth;
+use Filament\Schemas\Schema;
 
 class FormularioSolicitud
 {
-    public static function configure(Schema $form): Schema
+    public static function configure(Schema $schema): Schema
     {
         $user = Auth::user();
 
-        return $form->schema([
+        return $schema->schema([
             Tabs::make('Crear Solicitud')
                 ->disabled(function ($record) {
                     if (!$record) return false;
@@ -56,9 +58,7 @@ class FormularioSolicitud
                                 ->preload()
                                 ->required()
                                 ->columnSpanFull(),
-                            TextInput::make('id_estatus')
-                                ->hidden(fn() => true)
-                                ->dehydrated(true)
+                            Hidden::make('id_estatus')
                                 ->default(1),
                         ])
                         ->columns(3),
