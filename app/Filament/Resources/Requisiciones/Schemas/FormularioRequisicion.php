@@ -202,8 +202,7 @@ class FormularioRequisicion
                                         if ($user->esRecepcionista()) return false; // Optional assumption
                                         return true; // Default disabled for others (Solicitante) if status >= 2
                                     })
-                                    ->disableItemModification(fn ($record) => $record && $record->id_estatus >= 2)
-                                    ->disableItemDeletion(fn ($record) => $record && $record->id_estatus >= 2),
+                                    ->deletable(fn ($record) => !($record && $record->id_estatus >= 2)),
                             ]),
                     ])->columnSpanFull(), // Asegura que las pestañas ocupen todo el ancho
             ]);

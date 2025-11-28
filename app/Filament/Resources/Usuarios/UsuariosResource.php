@@ -16,6 +16,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\RolEnum;
 
 
 class UsuariosResource extends Resource
@@ -39,7 +40,7 @@ class UsuariosResource extends Resource
     public static function canViewAny(): bool
     {
         // Se utiliza el método del Trait para una verificación más limpia.
-        return Auth::user()->esAdministrador();
+        return Auth::user()->rol->nombre == 'Administrador';
     }
 
     public static function form(Schema $schema): Schema

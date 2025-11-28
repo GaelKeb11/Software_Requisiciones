@@ -27,7 +27,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Section;
 use App\Filament\Resources\Compras\GestionCompras\Pages\ViewGestionCompras;
 
-
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Get;
@@ -46,7 +46,7 @@ use Illuminate\Support\Facades\Auth;
 
 use Filament\Support\Icons\Heroicon;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Actions\ViewAction;
+
 
 class GestionComprasResource extends Resource
 {
