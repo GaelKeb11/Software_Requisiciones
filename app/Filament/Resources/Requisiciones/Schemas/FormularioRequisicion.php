@@ -139,7 +139,16 @@ class FormularioRequisicion
                                             ->preload()
                                             ->required()
                                             ->columnSpan(1)
-                                            ->disabled(fn ($record) => $record && $record->id_estatus >= 2),
+                                            ->visible(fn ($record) => !$record || $record->id_estatus < 2),
+                                        TextInput::make('clasificacion_nombre')
+                                            ->label('Clasificación')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->columnSpan(1)
+                                            ->visible(fn ($record) => $record && $record->id_estatus >= 2)
+                                            ->afterStateHydrated(function (TextInput $component, $record) {
+                                                $component->state($record?->clasificacion?->nombre);
+                                            }),
                                         Textarea::make('concepto')
                                             ->label('Concepto')
                                             ->required()

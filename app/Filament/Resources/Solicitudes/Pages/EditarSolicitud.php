@@ -25,8 +25,7 @@ class EditarSolicitud extends EditRecord
             Action::make('enviar')
                 ->label('Enviar Solicitud')
                 ->icon('heroicon-o-paper-airplane')
-                ->color('primary')
-                ->outlined()
+                ->color('success')
                 ->requiresConfirmation()
                 ->modalHeading('Enviar Solicitud')
                 ->modalDescription('¿Está seguro de enviar esta solicitud? Una vez enviada, pasará al proceso de revisión.')
@@ -39,7 +38,6 @@ class EditarSolicitud extends EditRecord
 
             DeleteAction::make()
                 ->icon('heroicon-o-trash')
-                ->outlined()
                 ->visible($isEditable),
         ];
     }
@@ -54,31 +52,20 @@ class EditarSolicitud extends EditRecord
             return [
                 $this->getCancelFormAction()
                     ->label('Regresar')
-                    ->icon('heroicon-o-arrow-left')
-                    ->outlined(),
+                    ->icon('heroicon-o-arrow-left'),
             ];
         }
 
         return [
-            Action::make('borrador')
-                ->label('Guardar Borrador')
-                ->icon('heroicon-o-pencil')
-                ->color('warning')
-                ->outlined()
-                ->requiresConfirmation()
-                ->modalHeading('Guardar Borrador')
-                ->modalDescription('Los cambios se guardarán en el borrador.')
-                ->modalSubmitActionLabel('Guardar')
+            Action::make('guardar')
+                ->label('Guardar')
+                ->color('primary')
                 ->action(function () {
                     $this->data['id_estatus'] = 1;
                     $this->save();
                 }),
 
-            $this->getCancelFormAction()
-                ->label('Cancelar')
-                ->icon('heroicon-o-x-mark')
-                ->color('danger')
-                ->outlined(),
+            $this->getCancelFormAction(),
         ];
     }
 }

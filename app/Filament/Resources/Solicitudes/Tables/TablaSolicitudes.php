@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Solicitudes\Tables;
 
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Filament\Actions\ViewAction;
@@ -12,8 +11,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-
-
+use Filament\Support\Colors\Color;
 
 class TablaSolicitudes
 {
@@ -28,19 +26,33 @@ class TablaSolicitudes
                 TextColumn::make('concepto')
                     ->label('Concepto')
                     ->searchable()
-                    ->limit(40), // Limita el texto para no saturar la tabla
-                TextColumn::make('departamento.nombre') // Usando la relación
+                    ->limit(40),
+                TextColumn::make('departamento.nombre')
                     ->label('Departamento Solicitante')
                     ->sortable(),
                 TextColumn::make('estatus.nombre')
                     ->label('Estatus')
+                    ->badge()
+                    ->color(function ($record) {
+                        $color = \App\Models\Recepcion\Estatus::find($record->id_estatus)?->color;
+                        
+                        if (!$color) {
+                            return 'gray';
+                        }
+
+                        if (str_starts_with($color, '#')) {
+                            return Color::hex($color);
+                        }
+
+                        return $color;
+                    })
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('fecha_creacion')
                     ->label('Fecha de Solicitud')
                     ->date('d/m/Y')
                     ->sortable(),
-            ])//
+            ])
             ->filters([
                 //
             ])

@@ -8,9 +8,19 @@ use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Hash;
 
+
 class CreateUsuarios extends CreateRecord
 {
     protected static string $resource = UsuariosResource::class;
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Guardar'),
+            $this->getCancelFormAction(),
+        ];
+    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

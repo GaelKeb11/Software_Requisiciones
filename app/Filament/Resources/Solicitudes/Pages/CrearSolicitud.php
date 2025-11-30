@@ -15,14 +15,9 @@ class CrearSolicitud extends CreateRecord
     {
         return [
             Action::make('enviar')
-                ->label('Enviar Solicitud')
+                ->label('Enviar')
                 ->icon('heroicon-o-paper-airplane')
-                ->color('primary')
-                ->outlined()
-                ->requiresConfirmation()
-                ->modalHeading('Enviar Solicitud')
-                ->modalDescription('¿Está seguro de enviar esta solicitud? Una vez enviada, pasará al proceso de revisión.')
-                ->modalSubmitActionLabel('Sí, enviar')
+                ->color('success')
                 ->action(function () {
                     $this->data['id_estatus'] = 2; // 2 = Recibida/Enviada
                     $this->create();
@@ -33,25 +28,15 @@ class CrearSolicitud extends CreateRecord
     protected function getFormActions(): array
     {
         return [
-            Action::make('borrador')
-                ->label('Guardar Borrador')
-                ->icon('heroicon-o-pencil')
-                ->color('warning')
-                ->outlined()
-                ->requiresConfirmation()
-                ->modalHeading('Guardar Borrador')
-                ->modalDescription('La solicitud se guardará como borrador y podrá editarla más tarde.')
-                ->modalSubmitActionLabel('Guardar')
+            Action::make('guardar')
+                ->label('Guardar')
+                ->color('primary')
                 ->action(function () {
                     $this->data['id_estatus'] = 1; // 1 = Borrador
-        $this->create();
+                    $this->create();
                 }),
 
-            $this->getCancelFormAction()
-                ->label('Cancelar')
-                ->icon('heroicon-o-x-mark')
-                ->color('danger')
-                ->outlined(),
+            $this->getCancelFormAction(),
         ];
     }
 }

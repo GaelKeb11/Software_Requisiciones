@@ -46,7 +46,7 @@ use Illuminate\Support\Facades\Auth;
 
 use Filament\Support\Icons\Heroicon;
 use Filament\Resources\Pages\ViewRecord;
-
+use Filament\Support\Colors\Color;
 
 class GestionComprasResource extends Resource
 {
@@ -221,12 +221,21 @@ class GestionComprasResource extends Resource
                 TextColumn::make('usuario.name')->label('Solicitante'),
                 TextColumn::make('departamento.nombre')->label('Departamento'),
                 TextColumn::make('fecha_creacion')->label('Fecha')->date()->sortable(),
-                TextColumn::make('estatus.nombre')->label('Estatus')
+                TextColumn::make('estatus.nombre')
+                    ->label('Estatus')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Asignada / En Cotización' => 'warning',
-                        'Pendiente de Aprobación' => 'info',
-                        default => 'gray',
+                    ->color(function ($record) {
+                        $color = \App\Models\Recepcion\Estatus::find($record->id_estatus)?->color;
+                        
+                        if (!$color) {
+                            return 'gray';
+                        }
+
+                        if (str_starts_with($color, '#')) {
+                            return Color::hex($color);
+                        }
+
+                        return $color;
                     }),
             ])
             ->filters([

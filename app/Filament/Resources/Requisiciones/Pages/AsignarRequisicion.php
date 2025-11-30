@@ -45,6 +45,10 @@ class AsignarRequisicion extends EditRecord
                 DatePicker::make('fecha_creacion')
                     ->label('Fecha de Creación')
                     ->disabled(),
+                TextInput::make('clasificacion.nombre')
+                    ->label('Clasificación')
+                    ->disabled()
+                    ->afterStateHydrated(fn ($component, $record) => $component->state($record->clasificacion?->nombre)),
                 DatePicker::make('fecha_recepcion')
                     ->label('Fecha de Recepción')
                     ->disabled(),

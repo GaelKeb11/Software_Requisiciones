@@ -19,6 +19,15 @@ class EditUsuarios extends EditRecord
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->label('Guardar'),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function afterFill(): void
     {
         // Obtenemos el rol y el departamento del registro que se está editando.
