@@ -10,6 +10,7 @@ use App\Filament\Resources\Requisiciones\Schemas\FormularioRequisicion;
 use App\Filament\Resources\Requisiciones\Tables\TablaRequisiciones;
 use App\Models\Recepcion\Requisicion;
 use BackedEnum;
+use UnitEnum;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 
@@ -37,6 +38,7 @@ class RequisicionResource extends Resource
     protected static ?string $navigationLabel = 'Requisiciones';
     protected static ?string $modelLabel = 'Requisición';
     protected static ?string $pluralModelLabel = 'Requisiciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Requisiciones';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

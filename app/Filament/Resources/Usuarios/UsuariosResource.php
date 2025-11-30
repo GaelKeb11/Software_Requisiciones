@@ -11,6 +11,7 @@ use App\Filament\Resources\Usuarios\Schemas\UsuariosInfolist;
 use App\Filament\Resources\Usuarios\Tables\UsuariosTable;
 use App\Models\Usuarios\Usuario;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -26,6 +27,7 @@ class UsuariosResource extends Resource
     protected static ?string $navigationLabel = 'Usuarios';
     protected static ?string $modelLabel = 'Usuario';
     protected static ?string $pluralModelLabel = 'Usuarios';
+    protected static string|UnitEnum|null $navigationGroup = 'Administración';
 
     // Se cambió el ícono para que sea más representativo de los usuarios.
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;

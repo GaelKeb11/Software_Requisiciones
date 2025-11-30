@@ -10,6 +10,7 @@ use App\Filament\Resources\Solicitudes\Schemas\FormularioSolicitud;
 use App\Filament\Resources\Solicitudes\Tables\TablaSolicitudes;
 use App\Models\Recepcion\Requisicion;
 use BackedEnum;
+use UnitEnum;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -27,6 +28,7 @@ class SolicitudResource extends Resource
     protected static ?string $navigationLabel = 'Mis Solicitudes';
     protected static ?string $modelLabel = 'Solicitud de Requisición';
     protected static ?string $pluralModelLabel = 'Mis Solicitudes';
+    protected static string|UnitEnum|null $navigationGroup = 'Solicitudes';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
     protected static ?string $recordTitleAttribute = 'folio';
 

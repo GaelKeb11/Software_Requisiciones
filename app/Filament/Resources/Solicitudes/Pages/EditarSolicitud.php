@@ -18,8 +18,7 @@ class EditarSolicitud extends EditRecord
     protected function getHeaderActions(): array
     {
         $record = $this->getRecord();
-        $user = Auth::user();
-        $isEditable = $record->id_estatus < 2 || $user->rol->nombre === 'Administrador';
+        $isEditable = $record->id_estatus == 1;
 
         return [
             Action::make('enviar')
@@ -34,7 +33,7 @@ class EditarSolicitud extends EditRecord
                     $this->data['id_estatus'] = 2;
                     $this->save();
                 })
-                ->visible($isEditable && $record->id_estatus == 1),
+                ->visible($isEditable),
 
             DeleteAction::make()
                 ->icon('heroicon-o-trash')
@@ -45,8 +44,7 @@ class EditarSolicitud extends EditRecord
     protected function getFormActions(): array
     {
         $record = $this->getRecord();
-        $user = Auth::user();
-        $isEditable = $record->id_estatus < 2 || $user->rol->nombre === 'Administrador';
+        $isEditable = $record->id_estatus == 1;
 
         if (!$isEditable) {
             return [

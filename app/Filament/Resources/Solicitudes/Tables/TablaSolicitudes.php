@@ -64,13 +64,10 @@ class TablaSolicitudes
                 EditAction::make()
                     ->icon('heroicon-o-pencil')
                     ->color('primary')
-                    ->outlined(),
+                    ->outlined()
+                    ->visible(fn ($record) => $record->id_estatus == 1),
                 DeleteAction::make()
-                    ->hidden(function ($record) {
-                        /** @var \App\Models\Usuarios\Usuario $user */
-                        $user = Auth::user();
-                        return $record->id_estatus >= 2 && !$user->esAdministrador();
-                    }),
+                    ->visible(fn ($record) => $record->id_estatus == 1),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

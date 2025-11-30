@@ -40,6 +40,7 @@ use App\Models\Usuarios\Usuario;
 use Filament\Actions\Action;
 use Filament\Schemas\Schema;
 use BackedEnum;
+use UnitEnum;
 
 use Filament\Actions\EditAction;
 use Illuminate\Support\Facades\Auth;
@@ -57,6 +58,7 @@ class GestionComprasResource extends Resource
     protected static ?string $slug = 'gestion-compras';
     protected static ?string $modelLabel = 'Requisición para Compra';
     protected static ?string $pluralModelLabel = 'Requisiciones para Compra';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras';
 
 
     public static function canViewAny(): bool
