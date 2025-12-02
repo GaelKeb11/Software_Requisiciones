@@ -39,17 +39,23 @@ class AdminMenu extends Page implements HasForms
                             ->hiddenLabel()
                             ->options([
                                 'logs' => 'Logs del Sistema',
+                                'estadisticas' => 'Estadísticas y Reportes',
                             ])
                             ->icons([
                                 'logs' => 'heroicon-o-document-text',
+                                'estadisticas' => 'heroicon-o-chart-pie',
                             ])
                             ->colors([
                                 'logs' => 'info',
+                                'estadisticas' => 'success',
                             ])
                             ->live()
                             ->afterStateUpdated(function ($state) {
                                 if ($state === 'logs') {
                                     return redirect()->to(AdministradorResource::getUrl('logs'));
+                                }
+                                if ($state === 'estadisticas') {
+                                    return redirect()->to(AdministradorResource::getUrl('estadisticas'));
                                 }
                             })
                     ]),

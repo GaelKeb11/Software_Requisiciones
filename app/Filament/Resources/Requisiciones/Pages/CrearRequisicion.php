@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Requisiciones\Pages;
 use App\Filament\Resources\Requisiciones\RequisicionResource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Actions\Action;
+use Illuminate\Support\Facades\Auth;
 
 class CrearRequisicion extends CreateRecord
 {
@@ -52,7 +53,16 @@ class CrearRequisicion extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['id_estatus'] = $this->isSending ? 2 : 1;
+        /** @var \App\Models\Usuarios\Usuario|null $user */
+        $user = Auth::user();
+
+        if ($user && $user->esRecepcionista()) {
+            // Recepcionista: Guardar = Recibida (2), Enviar = Asignada / En Cotización (3)
+            $data['id_estatus'] = $this->isSending ? 3 : 2;
+        } else {
+            // Otros roles mantienen el flujo habitual (Borrador / Recibida)
+            $data['id_estatus'] = $this->isSending ? 2 : 1;
+        }
 
         return $data;
     }

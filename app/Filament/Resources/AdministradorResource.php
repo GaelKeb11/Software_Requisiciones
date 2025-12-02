@@ -33,6 +33,7 @@ class AdministradorResource extends Resource
             'index' => Pages\AdminMenu::route('/'),
             'list' => Pages\ListAdministradors::route('/list'),
             'logs' => Pages\ActivityLog::route('/logs'),
+            'estadisticas' => Pages\EstadisticasReportes::route('/estadisticas'),
         ];
     }
 

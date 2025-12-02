@@ -32,10 +32,20 @@ class FormularioSolicitud
                     Tab::make('Información General')
                         ->icon('heroicon-o-clipboard-document-list')
                         ->schema([
-                            TextInput::make('solicitante')
+                            TextInput::make('solicitante_display')
                                 ->label('Solicitante')
-                                ->default($user->name)
-                                ->disabled(),
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->formatStateUsing(function ($state, $record) use ($user) {
+                                    if ($record && $record->solicitante) {
+                                        $solicitante = $record->solicitante;
+                                        return trim("{$solicitante->name} {$solicitante->apellido_paterno} {$solicitante->apellido_materno}");
+                                    }
+
+                                    return $user
+                                        ? trim("{$user->name} {$user->apellido_paterno} {$user->apellido_materno}")
+                                        : 'Sin asignar';
+                                }),
                             DatePicker::make('fecha_creacion')
                                 ->label('Fecha de Solicitud')
                                 ->default(now())

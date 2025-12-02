@@ -129,6 +129,7 @@ class UsuariosForm
                                     'Compras' => 'Personal de Compras',
                                     'Solicitante' => 'Solicitantes',
                                     'Director' => 'Directores',
+                                    'Tesoreria' => 'Tesorería',
                                 ])
                                 ->live()
                                 ->required() // Este campo ahora es obligatorio
@@ -139,10 +140,20 @@ class UsuariosForm
                                     $set('id_departamento', null);
 
                                     // Pre-seleccionar el rol si es único para el grupo y establecerlo reactivamente
-                                    if (in_array($state, ['Solicitante', 'Director'])) {
-                                        $rol = Rol::where('nombre', $state)->first();
+                                    if (in_array($state, ['Solicitante', 'Director', 'Tesoreria'])) {
+                                        $roleName = $state === 'Tesoreria' ? 'Tesorería' : $state;
+                                        $rol = Rol::where('nombre', $roleName)->first();
                                         if ($rol) {
                                             $set('id_rol', $rol->id_rol);
+                                        }
+
+                                        if ($state === 'Tesoreria') {
+                                            $dept = Departamento::where('nombre', 'LIKE', '%Tesorería%')
+                                                ->orWhere('nombre', 'LIKE', '%Tesoreria%')
+                                                ->first();
+                                            if ($dept) {
+                                                $set('id_departamento', $dept->id_departamento);
+                                            }
                                         }
                                     }
                                 }),
@@ -154,12 +165,13 @@ class UsuariosForm
                                     if ($grupo === 'Compras') {
                                         return Rol::whereIn('nombre', ['Recepcionista', 'Gestor de Compras', 'Director'])->pluck('nombre', 'id_rol');
                                     }
-                                    if (in_array($grupo, ['Solicitante', 'Director'])) {
-                                        return Rol::where('nombre', $grupo)->pluck('nombre', 'id_rol');
+                                    if (in_array($grupo, ['Solicitante', 'Director', 'Tesoreria'])) {
+                                        $roleName = $grupo === 'Tesoreria' ? 'Tesorería' : $grupo;
+                                        return Rol::where('nombre', $roleName)->pluck('nombre', 'id_rol');
                                     }
                                     return [];
                                 })
-                                ->disabled(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director']))
+                                ->disabled(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director', 'Tesoreria']))
                                 ->dehydrated()
                                 ->live()
                                 ->afterStateUpdated(function ($get, $set, $state) {
@@ -183,6 +195,11 @@ class UsuariosForm
                                         case 'Compras':
                                             return $query->where('nombre', 'Compras')->pluck('nombre', 'id_departamento');
 
+                                        case 'Tesoreria':
+                                            return $query->where('nombre', 'LIKE', '%Tesorería%')
+                                                ->orWhere('nombre', 'LIKE', '%Tesoreria%')
+                                                ->pluck('nombre', 'id_departamento');
+
                                         case 'Solicitante':
                                             return $query->pluck('nombre', 'id_departamento');
 
@@ -202,6 +219,8 @@ class UsuariosForm
                                             return [];
                                     }
                                 })
+                                ->disabled(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director']))
+                                ->dehydrated() // Se asegura que se guarde el valor aunque esté deshabilitado
                                 ->searchable(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director']))
                                 ->required()
                                 ->visible(fn ($get) => filled($get('grupo_rol'))),

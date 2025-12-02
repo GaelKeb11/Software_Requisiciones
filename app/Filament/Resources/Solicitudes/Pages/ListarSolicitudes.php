@@ -65,9 +65,9 @@ class ListarSolicitudes extends ListRecords
                 ->badge($baseQuery->clone()->where('id_estatus', 5)->count())
                 ->badgeColor($getColor(5)),
             'rechazada' => Tab::make('Rechazada')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 6))
-                ->badge($baseQuery->clone()->where('id_estatus', 6)->count())
-                ->badgeColor($getColor(6)),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 9))
+                ->badge($baseQuery->clone()->where('id_estatus', 9)->count())
+                ->badgeColor($getColor(9)),
         ];
     }
 }

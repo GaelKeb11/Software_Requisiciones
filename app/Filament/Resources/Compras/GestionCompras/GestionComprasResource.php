@@ -83,8 +83,16 @@ class GestionComprasResource extends Resource
                                         TextInput::make('folio')->label('Folio')->disabled(),
                                         TextInput::make('fecha_creacion')->label('Fecha Creación')->disabled(),
                                         TextInput::make('concepto')->label('Concepto')->columnSpan(3)->disabled(),
-                                        TextInput::make('usuario.name')->label('Solicitante')->disabled(),
-                                        TextInput::make('departamento.nombre')->label('Departamento')->disabled(),
+                                        TextInput::make('id_solicitante')
+                                            ->label('Solicitante')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (?Requisicion $record) => $record?->solicitante?->name . ' ' . $record?->solicitante?->apellido_paterno . ' ' . $record?->solicitante?->apellido_materno ?? 'Sin asignar'),
+                                        TextInput::make('id_departamento')
+                                            ->label('Departamento')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (?Requisicion $record) => $record?->departamento?->nombre ?? 'Sin asignar'),
                                     ])
                             ]),
 
@@ -204,9 +212,44 @@ class GestionComprasResource extends Resource
                                                 Hidden::make('tipo_documento')->default('Cotización'),
                                             ])
                                             ->addActionLabel('Agregar otra cotización')
+                                            ->disabled(fn (?Requisicion $record) => isset($record) && $record->id_estatus !== 3)
+                                            ->deletable(false)
                                             ->reorderable(false)
                                             ->collapsible()
                                             ->defaultItems(1)
+                                ]),
+
+                                Section::make('Órdenes de Compra')
+                                    ->columnSpan(1)
+                                    ->visible(fn (Requisicion $record) => in_array($record->id_estatus, [5, 6, 7, 8]))
+                                    ->description('Suba aquí el PDF de la orden de compra generada.')
+                                    ->schema([
+                                        Repeater::make('documentos_orden_compra')
+                                            ->relationship('documentos', fn ($query) => $query->where('tipo_documento', 'Orden de Compra'))
+                                            ->label('Archivos de Orden de Compra')
+                                            ->schema([
+                                                FileUpload::make('ruta_archivo')
+                                                    ->label('Archivo PDF')
+                                                    ->disk('public')
+                                                    ->directory('ordenes_compra')
+                                                    ->acceptedFileTypes(['application/pdf'])
+                                                    ->storeFileNamesIn('nombre_archivo')
+                                                    ->required()
+                                                    ->columnSpanFull()
+                                                    ->downloadable()
+                                                    ->openable(),
+                                                Hidden::make('nombre_archivo'),
+                                                TextInput::make('comentarios')
+                                                    ->label('Comentarios / Referencia')
+                                                    ->default('Orden de Compra'),
+                                                Hidden::make('tipo_documento')->default('Orden de Compra'),
+                                            ])
+                                            ->deletable(false)
+                                            ->disabled(fn (?Requisicion $record) => isset($record) && ! in_array($record->id_estatus, [5, 6, 7, 8]))
+                                            ->addActionLabel('Subir Orden de Compra')
+                                            ->reorderable(false)
+                                            ->collapsible()
+                                            ->defaultItems(0)
                                     ])
                             ])
                     ])
@@ -220,7 +263,7 @@ class GestionComprasResource extends Resource
             ->columns([
                 TextColumn::make('folio')->label('Folio')->searchable()->sortable(),
                 TextColumn::make('concepto')->label('Concepto')->searchable()->limit(30),
-                TextColumn::make('usuario.name')->label('Solicitante'),
+                TextColumn::make('solicitante.name')->label('Solicitante'),
                 TextColumn::make('departamento.nombre')->label('Departamento'),
                 TextColumn::make('fecha_creacion')->label('Fecha')->date()->sortable(),
                 TextColumn::make('estatus.nombre')
@@ -246,14 +289,44 @@ class GestionComprasResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make()
-                    ->label('Cotizar')
-                    ->visible(fn (Requisicion $record) => $record->id_estatus == 3),
-                Action::make('generar_oc')
-                    ->label('Generar OC')
-                    ->icon('heroicon-o-document-plus')
+                    ->label(fn (Requisicion $record) => $record->id_estatus == 3 ? 'Cotizar' : 'Subir OC')
+                    ->icon(fn (Requisicion $record) => $record->id_estatus == 3 ? null : 'heroicon-o-document-plus')
+                    ->color(fn (Requisicion $record) => $record->id_estatus == 3 ? 'warning' : 'success')
+                    ->visible(fn (Requisicion $record) => in_array($record->id_estatus, [3, 5])),
+                Action::make('marcar_lista_entrega')
+                    ->label('Recibido en Oficina')
+                    ->icon('heroicon-o-truck')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirmar Recepción')
+                    ->modalDescription('¿Confirmas que los materiales ya han llegado a las oficinas de compras y están listos para ser entregados?')
+                    ->action(function (Requisicion $record) {
+                        $record->id_estatus = 7; // Lista para Entrega
+                        $record->save();
+                        Notification::make()
+                            ->title('Requisición lista para entrega')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (Requisicion $record) => $record->id_estatus == 6), // En Proceso de Compra
+
+                Action::make('marcar_completada')
+                    ->label('Entregado (Completar)')
+                    ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->url(fn (Requisicion $record): string => Pages\GenerarOrdenCompra::getUrl(['requisicion_id' => $record->id_requisicion]))
-                    ->visible(fn (Requisicion $record) => $record->id_estatus == 5) // Solo si Aprobada? (Asumo 5 es aprobada)
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirmar Entrega Final')
+                    ->modalDescription('¿Confirmas que los materiales han sido entregados al solicitante? Esto finalizará el ciclo.')
+                    ->action(function (Requisicion $record) {
+                        $record->id_estatus = 8; // Completada
+                        $record->fecha_entrega = now();
+                        $record->save();
+                        Notification::make()
+                            ->title('Requisición completada')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (Requisicion $record) => $record->id_estatus == 7), // Lista para Entrega
             ]);
     }
 
@@ -267,7 +340,7 @@ class GestionComprasResource extends Resource
         // Si es Gestor de Compras, filtrar las requisiciones asignadas y con los estatus permitidos
         if ($user && $user->rol->nombre == 'Gestor de Compras') {
             $query->where('id_usuario', $user->id_usuario) // Asignada a este gestor
-                  ->whereIn('id_estatus', [3, 4, 5]); // Estatus permitidos
+                  ->whereIn('id_estatus', [3, 4, 5, 6, 7, 8, 9]); // Estatus permitidos
         }
 
         return $query;
@@ -280,7 +353,7 @@ class GestionComprasResource extends Resource
             'create' => Pages\CreateGestionCompras::route('/create'),
             'view' => Pages\ViewGestionCompras::route('/{record}'),
             'edit' => Pages\EditGestionCompras::route('/{record}/edit'),
-            'generar-orden' => Pages\GenerarOrdenCompra::route('/generar-orden'),
+
         ];
     }
 }

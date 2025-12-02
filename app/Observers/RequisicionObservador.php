@@ -4,6 +4,8 @@ namespace App\Observers;
 
 use App\Models\Recepcion\Requisicion;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Recepcion\Departamento;
+use App\Models\Usuarios\Usuario;
 
 class RequisicionObservador
 {
@@ -12,24 +14,37 @@ class RequisicionObservador
      */
     public function creating(Requisicion $requisicion): void
     {
-        // 1. Obtener el usuario autenticado y su departamento.
         $user = Auth::user();
-        
-        // Asegurarse de que el usuario y su departamento existen.
-        if (!$user || !$user->departamento) {
-            // Considera lanzar una excepción o manejar el caso donde el usuario no tiene departamento.
-            // Por ahora, se usará un prefijo por defecto y no se filtrará por departamento.
-            $prefijo = 'GEN';
-            $departamentoId = null;
-        } else {
-            $prefijo = $user->departamento->prefijo ?? 'GEN';
-            $departamentoId = $user->departamento->id_departamento;
+
+        // Si la requisición la captura un recepcionista y ya proporcionó el folio completo,
+        // respetamos el valor ingresado (solo normalizamos el formato).
+        if ($user && $user->esRecepcionista() && filled($requisicion->folio)) {
+            $requisicion->folio = strtoupper(trim($requisicion->folio));
+            return;
         }
 
-        // 2. Obtener el año actual.
-        $year = date('Y');
+        $requisicion->folio = $this->generarFolio($requisicion->id_departamento, $user);
+    }
 
-        // 3. Buscar la última requisición del departamento en el año actual.
+    protected function generarFolio(?int $departamentoId, ?Usuario $user): string
+    {
+        $year = date('Y');
+        $prefijo = 'GEN';
+
+        $departamento = null;
+        if ($departamentoId) {
+            $departamento = Departamento::find($departamentoId);
+        } elseif ($user && $user->departamento) {
+            $departamento = $user->departamento;
+        }
+
+        if ($departamento) {
+            $prefijo = $departamento->prefijo ?? 'GEN';
+            $departamentoId = $departamento->id_departamento;
+        } else {
+            $departamentoId = null;
+        }
+
         $query = Requisicion::whereYear('fecha_creacion', $year);
 
         if ($departamentoId) {
@@ -37,20 +52,17 @@ class RequisicionObservador
         }
 
         $lastRequisicion = $query->latest('id_requisicion')->first();
-        
+
         $consecutivo = 1;
         if ($lastRequisicion && $lastRequisicion->folio) {
-            // Extraer el último número del folio y sumarle 1.
             $parts = explode('-', $lastRequisicion->folio);
             $lastConsecutivo = (int) end($parts);
             $consecutivo = $lastConsecutivo + 1;
         }
 
-        // 4. Formatear el número con ceros a la izquierda.
         $numeroFormateado = str_pad($consecutivo, 4, '0', STR_PAD_LEFT);
 
-        // 5. Asignar el nuevo folio al modelo.
-        $requisicion->folio = "{$prefijo}-{$year}-{$numeroFormateado}";
+        return "{$prefijo}-{$year}-{$numeroFormateado}";
     }
 
     /**

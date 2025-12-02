@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Solicitud\DetalleRequisicion;
 use App\Models\Compras\Cotizacion;
+use App\Models\Usuarios\Usuario;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Recepcion\Estatus;
 use Illuminate\Support\Facades\Storage;
@@ -34,13 +35,14 @@ class Requisicion extends Model
         'id_clasificacion',
         'id_usuario',
         'id_estatus',
-        'id_solicitante'
+        'id_solicitante',
+        'fecha_entrega'
     ];
 
     protected $casts = [
         'fecha_creacion' => 'date',
         'fecha_recepcion' => 'date',
-        
+        'fecha_entrega' => 'date',
     ];
 
     protected static function booted()
@@ -77,6 +79,11 @@ class Requisicion extends Model
     public function usuario(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Usuarios\Usuario::class, 'id_usuario');
+    }
+
+    public function solicitante(): BelongsTo
+    {
+        return $this->belongsTo(Usuario::class, 'id_solicitante');
     }
 
     public function estatus(): BelongsTo

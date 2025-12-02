@@ -9,4 +9,5 @@ enum RolEnum: string
     case GESTOR_COMPRAS = 'Gestor de Compras';
     case SOLICITANTE = 'Solicitante';
     case DIRECTOR = 'Director';
+    case TESORERIA = 'Tesorería';
 }

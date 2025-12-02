@@ -5,15 +5,27 @@ namespace App\Filament\Resources\Tesoreria\AprobacionTesoreriaResource\Pages;
 use App\Filament\Resources\Tesoreria\AprobacionTesoreriaResource\AprobacionTesoreriaResource;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
-use App\Models\Recepcion\Estatus;
+use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Support\Colors\Color;
+use Filament\Actions\Action;
 
 class ListAprobacionTesoreria extends ListRecords
 {
     protected static string $resource = AprobacionTesoreriaResource::class;
 
     protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('reportes')
+                ->label('Reportes y Estadísticas')
+                ->icon('heroicon-o-presentation-chart-line')
+                ->url(AprobacionTesoreriaResource::getUrl('reportes')),
+        ];
+    }
+
+    // Aseguramos que NO haya widgets aquí
+    protected function getHeaderWidgets(): array
     {
         return [];
     }
@@ -22,6 +34,7 @@ class ListAprobacionTesoreria extends ListRecords
     {
         $baseQuery = static::getResource()::getEloquentQuery();
 
+        // Helper function to get color safely (copied logic to ensure stability)
         $getColor = function($id) {
              $status = \App\Models\Recepcion\Estatus::find($id);
              $color = $status ? $status->color : 'gray';
@@ -50,21 +63,15 @@ class ListAprobacionTesoreria extends ListRecords
                 ->badge($baseQuery->clone()->where('id_estatus', 5)->count())
                 ->badgeColor($getColor(5)),
 
-            // Asumimos que 'Completada' tiene un ID específico o se busca por nombre, 
-            // pero para mantener consistencia usaré find si es posible, o dejaré la lógica de nombre si el ID no es fijo.
-            // Aquí usaré el color del estatus 'Completada' dinámicamente.
             'completadas' => Tab::make('Completada')
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('estatus', fn ($q) => $q->where('nombre', 'Completada')))
                 ->badge($baseQuery->clone()->whereHas('estatus', fn ($q) => $q->where('nombre', 'Completada'))->count())
-                ->badgeColor(function() use ($getColor) {
-                    $estatus = \App\Models\Recepcion\Estatus::where('nombre', 'Completada')->first();
-                    return $estatus ? $getColor($estatus->id_estatus) : 'success';
-                }),
+                ->badgeColor('success'),
 
             'rechazadas' => Tab::make('Rechazada')
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 6))
-                ->badge($baseQuery->clone()->where('id_estatus', 6)->count())
-                ->badgeColor($getColor(6)),
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 9))
+                ->badge($baseQuery->clone()->where('id_estatus', 9)->count())
+                ->badgeColor($getColor(9)),
         ];
     }
 }

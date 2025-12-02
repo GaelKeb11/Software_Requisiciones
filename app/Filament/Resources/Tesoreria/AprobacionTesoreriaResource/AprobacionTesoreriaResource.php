@@ -63,9 +63,17 @@ class AprobacionTesoreriaResource extends Resource
                                         TextInput::make('folio')->label('Folio')->disabled(),
                                         TextInput::make('fecha_creacion')->label('Fecha Creación')->disabled(),
                                         TextInput::make('concepto')->label('Concepto')->columnSpan(3)->disabled(),
-                                        TextInput::make('usuario.name')->label('Solicitante')->disabled(),
-                                        TextInput::make('departamento.nombre')->label('Departamento')->disabled(),
-                                        TextInput::make('estatus.nombre')->label('Estatus')->disabled(),
+                                        TextInput::make('id_solicitante')
+                                            ->label('Solicitante')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (?Requisicion $record) => $record?->solicitante?->name . ' ' . $record?->solicitante?->apellido_paterno . ' ' . $record?->solicitante?->apellido_materno ?? 'Sin asignar'),
+                                        TextInput::make('id_departamento')
+                                            ->label('Departamento')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (?Requisicion $record) => $record?->departamento?->nombre ?? 'Sin asignar'),
+                                        //TextInput::make('estatus.nombre')->label('Estatus')->disabled(),
                                     ])
                             ]),
 
@@ -168,6 +176,7 @@ class AprobacionTesoreriaResource extends Resource
     {
         return [
             'index' => Pages\ListAprobacionTesoreria::route('/'),
+            'reportes' => Pages\ReportesTesoreria::route('/reportes'),
             'view' => Pages\ViewAprobacionTesoreria::route('/{record}'),
         ];
     }

@@ -40,7 +40,7 @@ class ViewAprobacionTesoreria extends ViewRecord
                 ->modalHeading('¿Rechazar cotización?')
                 ->modalDescription('La requisición será rechazada.')
                 ->action(function () {
-                    $this->record->update(['id_estatus' => 6]); // 6 = Rechazada
+                    $this->record->update(['id_estatus' => 9]); // 9 = Rechazada
 
                     Notification::make()
                         ->title('Requisición Rechazada')

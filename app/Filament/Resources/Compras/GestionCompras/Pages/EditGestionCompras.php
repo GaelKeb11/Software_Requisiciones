@@ -19,10 +19,10 @@ class EditGestionCompras extends EditRecord
     {
         $this->record = $this->resolveRecord($record);
 
-        if ($this->record->id_estatus != 3) {
+        if (! in_array($this->record->id_estatus, [3, 5])) {
             Notification::make()
                 ->title('No editable')
-                ->body('Esta requisición ya no se puede cotizar porque está en aprobación o aprobada.')
+                ->body('Esta requisición no se puede modificar en este momento.')
                 ->warning()
                 ->send();
             $this->redirect($this->getResource()::getUrl('index'));

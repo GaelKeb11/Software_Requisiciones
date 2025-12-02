@@ -16,7 +16,7 @@ class ListGestionCompras extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+    
         ];
     }
 
@@ -56,10 +56,22 @@ class ListGestionCompras extends ListRecords
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 5))
                 ->badge($baseQuery->clone()->where('id_estatus', 5)->count())
                 ->badgeColor($getColor(5)),
-            'Rechazadas' => Tab::make('Rechazadas')
+            'En Proceso' => Tab::make('En Proceso')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 6))
                 ->badge($baseQuery->clone()->where('id_estatus', 6)->count())
                 ->badgeColor($getColor(6)),
+            'Lista para Entrega' => Tab::make('Lista para Entrega')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 7))
+                ->badge($baseQuery->clone()->where('id_estatus', 7)->count())
+                ->badgeColor($getColor(7)),
+            'Completadas' => Tab::make('Completadas')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 8))
+                ->badge($baseQuery->clone()->where('id_estatus', 8)->count())
+                ->badgeColor($getColor(8)),
+            'Rechazadas' => Tab::make('Rechazadas')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('id_estatus', 9))
+                ->badge($baseQuery->clone()->where('id_estatus', 9)->count())
+                ->badgeColor($getColor(9)),
         ];
     }
 }

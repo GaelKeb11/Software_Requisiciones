@@ -73,7 +73,7 @@ class FormularioRequisicion
                                                 /** @var \App\Models\Usuarios\Usuario $user */
                                                 $user = Auth::user();
                                                 if ($user->esRecepcionista()) {
-                                                    return null;
+                                                    return '';
                                                 }
 
                                                 $departamento = $user->departamento;
@@ -93,7 +93,18 @@ class FormularioRequisicion
                                                     return $prefix . '-' . $folioNumber;
                                                 }
                                                 return null;
-                                            }),
+                                            })
+                                            ->helperText(function () {
+                                                /** @var \App\Models\Usuarios\Usuario|null $user */
+                                                $user = Auth::user();
+
+                                                if ($user && $user->esRecepcionista()) {
+                                                    return 'El prefijo se genera automáticamente. Captura solo el consecutivo final.';
+                                                }
+
+                                                return null;
+                                            })
+                                            ->dehydrateStateUsing(fn ($state) => $state ? strtoupper(trim($state)) : $state),
                                         DatePicker::make('fecha_creacion')
                                             ->label('Fecha de Creación')
                                             ->required()->columnSpan(1)

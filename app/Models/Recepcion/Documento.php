@@ -22,6 +22,17 @@ class Documento extends Model
         'comentarios',
     ];
 
+    protected static function booted()
+    {
+        static::created(function (Documento $documento) {
+            if ($documento->tipo_documento === 'Orden de Compra' && $documento->requisicion) {
+                if ($documento->requisicion->id_estatus <= 5) {
+                    $documento->requisicion->update(['id_estatus' => 6]);
+                }
+            }
+        });
+    }
+
     public function requisicion(): BelongsTo
     {
         return $this->belongsTo(Requisicion::class, 'id_requisicion');
