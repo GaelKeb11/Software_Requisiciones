@@ -40,14 +40,17 @@ class AdminMenu extends Page implements HasForms
                             ->options([
                                 'logs' => 'Logs del Sistema',
                                 'estadisticas' => 'Estadísticas y Reportes',
+                                'respaldos' => 'Respaldos de la Base de Datos',
                             ])
                             ->icons([
                                 'logs' => 'heroicon-o-document-text',
                                 'estadisticas' => 'heroicon-o-chart-pie',
+                                'respaldos' => 'heroicon-o-cloud-arrow-down',
                             ])
                             ->colors([
                                 'logs' => 'info',
                                 'estadisticas' => 'success',
+                                'respaldos' => 'warning',
                             ])
                             ->live()
                             ->afterStateUpdated(function ($state) {
@@ -56,6 +59,9 @@ class AdminMenu extends Page implements HasForms
                                 }
                                 if ($state === 'estadisticas') {
                                     return redirect()->to(AdministradorResource::getUrl('estadisticas'));
+                                }
+                                if ($state === 'respaldos') {
+                                    return redirect()->to(AdministradorResource::getUrl('list'));
                                 }
                             })
                     ]),
