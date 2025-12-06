@@ -219,7 +219,7 @@ class UsuariosForm
                                             return [];
                                     }
                                 })
-                                ->disabled(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director']))
+                                //->disabled(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director']))
                                 ->dehydrated() // Se asegura que se guarde el valor aunque esté deshabilitado
                                 ->searchable(fn ($get) => in_array($get('grupo_rol'), ['Solicitante', 'Director']))
                                 ->required()
