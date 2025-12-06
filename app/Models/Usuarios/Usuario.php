@@ -17,12 +17,13 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Support\Facades\URL;
+use App\Models\Traits\HasRoles; // Importamos el Trait
 
 // CORRECCIÓN: 'HasAvatar' se añade a la lista de 'implements'.
 class Usuario extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAvatar
 {
     // La línea 'use HasAvatar;' ha sido eliminada de aquí, ya que no es un Trait.
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, HasRoles; // Usamos el Trait
 
     protected $primaryKey = 'id_usuario';
 
@@ -86,7 +87,9 @@ class Usuario extends Authenticatable implements FilamentUser, HasAppAuthenticat
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->rol && in_array($this->rol->nombre, ['Administrador', 'Recepcionista', 'Gestor de Compras','Solicitante']);
+        // Permite el acceso al panel a todos los usuarios autenticados.
+        // La visibilidad de los recursos se controla en cada Resource.
+        return true;
     }
 
     public function hasRole(string $role): bool

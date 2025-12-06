@@ -10,25 +10,42 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Hidden;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Schema;
+use Filament\Forms\Form;
+use Filament\Forms\Components\ToggleButtons;
 use Illuminate\Support\Facades\Auth;
+use Filament\Schemas\Schema;
 
 class FormularioSolicitud
 {
-    public static function configure(Schema $form): Schema
+    public static function configure(Schema $schema): Schema
     {
         $user = Auth::user();
 
-        return $form->schema([
+        return $schema->schema([
             Tabs::make('Crear Solicitud')
+                ->disabled(function ($record) {
+                    if (!$record) return false;
+                    // Bloquear si el estatus no es Borrador (1), para todos los usuarios (incluido Admin)
+                    return $record->id_estatus != 1;
+                })
                 ->tabs([
                     Tab::make('Información General')
                         ->icon('heroicon-o-clipboard-document-list')
                         ->schema([
-                            TextInput::make('solicitante')
+                            TextInput::make('solicitante_display')
                                 ->label('Solicitante')
-                                ->default($user->name)
-                                ->disabled(),
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->formatStateUsing(function ($state, $record) use ($user) {
+                                    if ($record && $record->solicitante) {
+                                        $solicitante = $record->solicitante;
+                                        return trim("{$solicitante->name} {$solicitante->apellido_paterno} {$solicitante->apellido_materno}");
+                                    }
+
+                                    return $user
+                                        ? trim("{$user->name} {$user->apellido_paterno} {$user->apellido_materno}")
+                                        : 'Sin asignar';
+                                }),
                             DatePicker::make('fecha_creacion')
                                 ->label('Fecha de Solicitud')
                                 ->default(now())
@@ -47,9 +64,7 @@ class FormularioSolicitud
                                 ->preload()
                                 ->required()
                                 ->columnSpanFull(),
-                            TextInput::make('id_estatus')
-                                ->hidden(fn() => true)
-                                ->dehydrated(true)
+                            Hidden::make('id_estatus')
                                 ->default(1),
                         ])
                         ->columns(3),

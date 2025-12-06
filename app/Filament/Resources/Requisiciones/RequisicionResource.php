@@ -5,12 +5,15 @@ namespace App\Filament\Resources\Requisiciones;
 use App\Filament\Resources\Requisiciones\Pages\CrearRequisicion;
 use App\Filament\Resources\Requisiciones\Pages\EditarRequisicion;
 use App\Filament\Resources\Requisiciones\Pages\ListarRequisiciones;
+use App\Filament\Resources\Requisiciones\Pages\ViewRequisicion;
 use App\Filament\Resources\Requisiciones\Schemas\FormularioRequisicion;
 use App\Filament\Resources\Requisiciones\Tables\TablaRequisiciones;
 use App\Models\Recepcion\Requisicion;
 use BackedEnum;
+use UnitEnum;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
+
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,6 +22,13 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Section;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 
 class RequisicionResource extends Resource
@@ -28,6 +38,7 @@ class RequisicionResource extends Resource
     protected static ?string $navigationLabel = 'Requisiciones';
     protected static ?string $modelLabel = 'Requisición';
     protected static ?string $pluralModelLabel = 'Requisiciones';
+    protected static string|UnitEnum|null $navigationGroup = 'Requisiciones';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
@@ -36,8 +47,7 @@ class RequisicionResource extends Resource
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        // Llama al método hasRole() del modelo User para verificar los permisos.
-        return $user->rol->nombre == 'Administrador' || $user->rol->nombre == 'Recepcionista';
+        return $user->rol->nombre == 'Recepcionista' || $user->rol->nombre == 'Administrador';
     }
     public static function form(Schema $schema): Schema
     {
@@ -61,6 +71,7 @@ class RequisicionResource extends Resource
         return [
             'index' => ListarRequisiciones::route('/'),
             'create' => CrearRequisicion::route('/create'),
+            'view' => ViewRequisicion::route('/{record}'),
             'asignar' => Pages\AsignarRequisicion::route('/{record}/asignar'),
         ];
     }
@@ -75,7 +86,17 @@ class RequisicionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        $query = parent::getEloquentQuery();
+        
+        /** @var \App\Models\Usuarios\Usuario $user */
+        $user = Auth::user();
+
+        // Si el usuario es Recepcionista, ocultar los borradores (id_estatus = 1)
+        if ($user->esRecepcionista()) {
+            $query->where('id_estatus', '!=', 1);
+        }
+
+        return $query;
     }
 
     public static function getFormSchema(): array
@@ -89,4 +110,13 @@ class RequisicionResource extends Resource
             Textarea::make('concepto')->disabled(),
         ];
     }
+
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        // Actualizar solo la requisición principal
+        $record->update($data);
+        
+        return $record;
+    }
+
 }

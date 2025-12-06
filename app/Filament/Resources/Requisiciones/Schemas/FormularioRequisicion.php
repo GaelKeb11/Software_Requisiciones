@@ -12,12 +12,25 @@ use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Set;
 use App\Models\Recepcion\Departamento;
+use App\Models\Recepcion\Estatus;
+use App\Models\Compras\Cotizacion;
+
 
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Usuarios\Usuario;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use App\Models\Recepcion\Documento;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Group;
+use Illuminate\Http\UploadedFile as TemporaryUploadedFile;
 
 // La importación de Heroicon se elimina, ya que no es necesaria con la sintaxis corregida.
+
+use Filament\Schemas\Components\Section;
 
 class FormularioRequisicion
 {
@@ -41,51 +54,120 @@ class FormularioRequisicion
                     ->tabs([
                         // 5. PESTAÑA 1: DETALLES DE LA REQUISICIÓN
                         Tab::make('Detalles de la Requisición')
-                            // CORRECCIÓN: Se usa el nombre completo del ícono como una cadena de texto.
+
                             ->icon('heroicon-o-clipboard-document-list')
                             ->schema([
-                                // Todos los campos principales van aquí dentro
-                                TextInput::make('folio')
-                                    ->label('Folio')
-                                    ->required()
-                                    ->maxLength(255) // Validación de longitud máxima
-                                    ->columnSpan(1),
-                                DatePicker::make('fecha_creacion')
-                                    ->label('Fecha de Creación')
-                                    ->required()->columnSpan(1),
-                                Select::make('id_departamento')
-                                    ->label('Dependencia')
-                                    ->relationship('departamento', 'nombre')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->live()
-                                    ->afterStateUpdated(function ($set, $state) {
-                                        if ($state) {
-                                            $departamento = Departamento::find($state);
-                                            if ($departamento && $departamento->prefijo) {
-                                                $set('folio', $departamento->prefijo . '-' . now()->year . '-');
-                                            } else {
-                                                $set('folio', null);
-                                            }
-                                        } else {
-                                            $set('folio', null);
-                                        }
-                                    })
-                                    ->columnSpan(1),
-                                Select::make('id_clasificacion')
-                                    ->label('Clasificación')
-                                    ->relationship('clasificacion', 'nombre')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->columnSpan(1),
-                                Textarea::make('concepto')
-                                    ->label('Concepto')
-                                    ->required()
-                                    ->minLength(10) // Validación de longitud mínima
-                                    ->maxLength(500) // Validación de longitud máxima
-                                    ->columnSpanFull(),
+                                Section::make()
+                                    ->schema([
+                                        TextInput::make('folio')
+                                            ->label('Folio')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpan(1)
+                                            ->readOnly(function () {
+                                                /** @var \App\Models\Usuarios\Usuario $user */
+                                                $user = Auth::user();
+                                                return !$user->esRecepcionista();
+                                            })
+                                            ->default(function () {
+                                                /** @var \App\Models\Usuarios\Usuario $user */
+                                                $user = Auth::user();
+                                                if ($user->esRecepcionista()) {
+                                                    return '';
+                                                }
+
+                                                $departamento = $user->departamento;
+                                                if ($departamento && $departamento->prefijo) {
+                                                    $prefix = $departamento->prefijo . '-' . now()->year;
+                                                    $lastRequisicion = \App\Models\Recepcion\Requisicion::where('folio', 'like', $prefix . '-%')
+                                                        ->latest('id_requisicion')
+                                                        ->first();
+
+                                                    $nextNumber = 1;
+                                                    if ($lastRequisicion) {
+                                                        $lastNumber = (int) last(explode('-', $lastRequisicion->folio));
+                                                        $nextNumber = $lastNumber + 1;
+                                                    }
+
+                                                    $folioNumber = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+                                                    return $prefix . '-' . $folioNumber;
+                                                }
+                                                return null;
+                                            })
+                                            ->helperText(function () {
+                                                /** @var \App\Models\Usuarios\Usuario|null $user */
+                                                $user = Auth::user();
+
+                                                if ($user && $user->esRecepcionista()) {
+                                                    return 'El prefijo se genera automáticamente. Captura solo el consecutivo final.';
+                                                }
+
+                                                return null;
+                                            })
+                                            ->dehydrateStateUsing(fn ($state) => $state ? strtoupper(trim($state)) : $state),
+                                        DatePicker::make('fecha_creacion')
+                                            ->label('Fecha de Creación')
+                                            ->required()->columnSpan(1)
+                                            ->disabled(fn ($record) => $record && $record->id_estatus >= 2),
+                                        Select::make('id_departamento')
+                                            ->label('Dependencia')
+                                            ->relationship('departamento', 'nombre')
+                                            ->searchable()
+                                            ->preload()
+                                            ->required()
+                                            ->disabled(function () {
+                                                /** @var \App\Models\Usuarios\Usuario $user */
+                                                $user = Auth::user();
+                                                return !$user->esRecepcionista();
+                                            })
+                                            ->default(function () {
+                                                /** @var \App\Models\Usuarios\Usuario $user */
+                                                $user = Auth::user();
+                                                return !$user->esRecepcionista() ? $user->id_departamento : null;
+                                            })
+                                            ->live()
+                                            ->afterStateUpdated(function ($set, $state) {
+                                                /** @var \App\Models\Usuarios\Usuario $user */
+                                                $user = Auth::user();
+                                                if ($user->esRecepcionista()) {
+                                                    if ($state) {
+                                                        $departamento = \App\Models\Recepcion\Departamento::find($state);
+                                                        if ($departamento && $departamento->prefijo) {
+                                                            $set('folio', $departamento->prefijo . '-' . now()->year . '-');
+                                                        } else {
+                                                            $set('folio', '');
+                                                        }
+                                                    } else {
+                                                        $set('folio', '');
+                                                    }
+                                                }
+                                            })
+                                            ->columnSpan(1),
+                                        Select::make('id_clasificacion')
+                                            ->label('Clasificación')
+                                            ->relationship('clasificacion', 'nombre')
+                                            ->searchable()
+                                            ->preload()
+                                            ->required()
+                                            ->columnSpan(1)
+                                            ->visible(fn ($record) => !$record || $record->id_estatus < 2),
+                                        TextInput::make('clasificacion_nombre')
+                                            ->label('Clasificación')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->columnSpan(1)
+                                            ->visible(fn ($record) => $record && $record->id_estatus >= 2)
+                                            ->afterStateHydrated(function (TextInput $component, $record) {
+                                                $component->state($record?->clasificacion?->nombre);
+                                            }),
+                                        Textarea::make('concepto')
+                                            ->label('Concepto')
+                                            ->required()
+                                            ->minLength(10)
+                                            ->maxLength(500)
+                                            ->columnSpanFull()
+                                            ->disabled(fn ($record) => $record && $record->id_estatus >= 2),
+                                    ])->columns(2),
                                 Select::make('id_usuario')
                                     ->relationship('usuario', 'name', function ($query) {
                                         return $query->whereHas('rol', function ($query) {
@@ -95,51 +177,52 @@ class FormularioRequisicion
                                     ->label('Asignado a')
                                     ->searchable()
                                     ->preload()
-                                    ->columnSpanFull(),
-                            ])->columns(2),
+                                    ->columnSpanFull()
+                                    ->disabled(fn ($record) => $record && $record->id_estatus >= 2 && !Auth::user()->rol->nombre == 'Gestor de Compras'),
+                            ]),
 
-                        // 6. PESTAÑA 2: DOCUMENTOS ADJUNTOS
-                        Tab::make('Documentos Adjuntos')
-                            // CORRECCIÓN: Se usa el nombre completo del ícono como una cadena de texto.
-                            ->icon('heroicon-o-paper-clip')
+                        // 6. PESTAÑA 2: DOCUMENTOS
+                        Tab::make('Documentos')
+                            ->icon('heroicon-o-document-plus')
                             ->schema([
-                                // Ambos Repeaters (para crear y editar) van en esta pestaña.
-                                // Filament mostrará solo el que corresponda gracias a la lógica 'visibleOn'.
                                 Repeater::make('documentos')
-                                    ->label('Cargar Nuevos Documentos')
-                                    ->relationship('documentos')
+                                    ->relationship()
                                     ->schema([
-                                        FileUpload::make('ruta_archivo')
-                                            ->label('Archivo')
-                                            ->disk('public')
-                                            ->directory('documentos')
-                                            ->storeFileNamesIn('nombre_archivo')
-                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                                            ->getUploadedFileNameForStorageUsing(
-                                                fn($file) => md5($file->getClientOriginalName() . time()) . '.' . $file->getClientOriginalExtension()
-                                            ),
                                         Select::make('tipo_documento')
                                             ->label('Tipo de Documento')
-                                            ->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro'])
+                                            ->options([
+                                                'Requisición' => 'Requisición',
+                                            ])
+                                            ->required(),
+                                        FileUpload::make('ruta_archivo')
+                                            ->label('Documento')
+                                            ->required()
+                                            ->storeFileNamesIn('nombre_archivo')
+                                            ->disk('public')
+                                            ->directory('requisiciones-documentos')
+                                            ->visibility('public')
+                                            ->downloadable()
+                                            ->openable(),
+                                        Textarea::make('comentarios')
+                                            ->label('Comentarios')
+                                            ->rows(3)
+                                            ->columnSpanFull(),
                                     ])
                                     ->columns(2)
-                                    ->addActionLabel('+ Agregar Documento')
-                                    ->collapsible()
-                                    ->visibleOn('create'),
-
-                                Repeater::make('documentos_relacionados')
-                                    ->label('Documentos Existentes')
-                                    ->relationship('documentos')
-                                    ->schema([
-                                        TextInput::make('nombre_archivo')->label('Nombre del Archivo')->disabled(),
-                                        Select::make('tipo_documento')->label('Tipo de Documento')->options(['oficio' => 'Oficio', 'factura' => 'Factura', 'cotizacion' => 'Cotización', 'otro' => 'Otro'])->required(),
-                                        ViewField::make('descargar')->label('')->view('components.document-download')->viewData(fn ($record) => ['url' => asset('storage/' . $record->ruta_archivo)])
-                                    ])
-                                    ->columns(3)
-                                    ->deletable()
-                                    ->addable(false)
-                                    ->reorderable(false)
-                                    ->visibleOn('edit'),
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Agregar Documento')
+                                    ->itemLabel(fn (array $state): ?string => $state['nombre_archivo'] ?? null)
+                                    ->disabled(function ($record) {
+                                        if (!$record || $record->id_estatus < 2) return false;
+                                        /** @var \App\Models\Usuarios\Usuario $user */
+                                        $user = Auth::user();
+                                        if ($user->rol->nombre === 'Gestor de Compras' && in_array($record->id_estatus, [3, 5])) {
+                                            return false;
+                                        }
+                                        if ($user->esRecepcionista()) return false; // Optional assumption
+                                        return true; // Default disabled for others (Solicitante) if status >= 2
+                                    })
+                                    ->deletable(fn ($record) => !($record && $record->id_estatus >= 2)),
                             ]),
                     ])->columnSpanFull(), // Asegura que las pestañas ocupen todo el ancho
             ]);

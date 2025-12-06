@@ -4,14 +4,14 @@ namespace App\Filament\Resources\Compras\GestionCompras;
 
 use App\Filament\Resources\Compras\GestionCompras\Pages;
 use App\Models\Recepcion\Requisicion;
-use Filament\Forms\Form;
+
 use Filament\Resources\Resource;
-use Filament\Tables;
+
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\Action;
-use Filament\Schemas\Components\Tabs;
+
+
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\FileUpload;
@@ -21,15 +21,33 @@ use App\Models\Recepcion\Documento;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
-use Filament\Forms\Get;
+
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Section;
+use App\Filament\Resources\Compras\GestionCompras\Pages\ViewGestionCompras;
+
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
-use Illuminate\Support\Facades\Auth;
-use Filament\Support\Icons\Heroicon;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Forms\Components\Placeholder;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\Storage;
+
+use App\Models\Usuarios\Usuario;
+use Filament\Actions\Action;
 use Filament\Schemas\Schema;
 use BackedEnum;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use UnitEnum;
+
 use Filament\Actions\EditAction;
+use Illuminate\Support\Facades\Auth;
+
+use Filament\Support\Icons\Heroicon;
+use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Colors\Color;
 
 class GestionComprasResource extends Resource
 {
@@ -40,19 +58,202 @@ class GestionComprasResource extends Resource
     protected static ?string $slug = 'gestion-compras';
     protected static ?string $modelLabel = 'Requisición para Compra';
     protected static ?string $pluralModelLabel = 'Requisiciones para Compra';
+    protected static string|UnitEnum|null $navigationGroup = 'Compras';
 
 
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user->rol->nombre === 'Gestor de Compras' || $user->rol->nombre === 'Administrador';
+        return $user->rol->nombre == 'Gestor de Compras' || $user->rol->nombre == 'Administrador';
     }
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                //
+                Tabs::make('Requisición y Cotización')
+                    ->tabs([
+                        // TAB 1: INFORMACIÓN GENERAL
+                        Tab::make('Información General')
+                            ->icon('heroicon-o-information-circle')
+                            ->schema([
+                                Section::make()
+                                    ->columns(3)
+                                    ->schema([
+                                        TextInput::make('folio')->label('Folio')->disabled(),
+                                        TextInput::make('fecha_creacion')->label('Fecha Creación')->disabled(),
+                                        TextInput::make('concepto')->label('Concepto')->columnSpan(3)->disabled(),
+                                        TextInput::make('id_solicitante')
+                                            ->label('Solicitante')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (?Requisicion $record) => $record?->solicitante?->name . ' ' . $record?->solicitante?->apellido_paterno . ' ' . $record?->solicitante?->apellido_materno ?? 'Sin asignar'),
+                                        TextInput::make('id_departamento')
+                                            ->label('Departamento')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (?Requisicion $record) => $record?->departamento?->nombre ?? 'Sin asignar'),
+                                    ])
+                            ]),
+
+                        // TAB 2: DETALLES (ITEMS)
+                        Tab::make('Detalles de Items')
+                            ->icon('heroicon-o-list-bullet')
+                            ->visible(fn (Requisicion $record) => $record->detalles()->exists())
+                            ->schema([
+                                Repeater::make('cotizaciones')
+                                    ->relationship()
+                                    ->label('Cotización por Items')
+                                    ->schema([
+                                        TextInput::make('nombre_proveedor')
+                                            ->label('Nombre del Proveedor')
+                                            ->required()
+                                            ->columnSpan(2),
+                                        DatePicker::make('fecha_cotizacion')
+                                            ->label('Fecha de Cotización')
+                                            ->default(now())
+                                            ->required(),
+                                        
+                                        Repeater::make('detalles')
+                                            ->relationship()
+                                            ->label('Ítems a Cotizar')
+                                            ->schema([
+                                                TextInput::make('descripcion')->label('Descripción')->disabled(),
+                                                TextInput::make('unidad_medida')->label('U.M.')->disabled(),
+                                                TextInput::make('cantidad_cotizada')->label('Cantidad')->numeric()->disabled(),
+                                                TextInput::make('precio_unitario')
+                                                    ->label('Precio Unitario')
+                                                    ->numeric()
+                                                    ->prefix('$')
+                                                    ->live(onBlur: true)
+                                                    ->afterStateUpdated(function ($state, $set, $get) {
+                                                        $cantidad = $get('cantidad_cotizada') ?? 0;
+                                                        $set('subtotal', round($state * $cantidad, 2));
+                                                    })
+                                                    ->required(),
+                                                TextInput::make('subtotal')
+                                                    ->label('Subtotal')
+                                                    ->numeric()
+                                                    ->prefix('$')
+                                                    ->disabled()
+                                                    ->dehydrated()
+                                            ])
+                                            ->columns(5)
+                                            ->addable(false)
+                                            ->deletable(false)
+                                            ->visible(fn ($record) => $record->requisicion && $record->requisicion->detalles()->exists())
+                                    ])
+                                    ->maxItems(1)
+                                    ->disableItemCreation()
+                                    ->disableItemDeletion(),
+                            ]),
+
+                        // TAB 3: DOCUMENTOS (Cotización PDF y Visualización)
+                        Tab::make('Documentos')
+                            ->icon('heroicon-o-document-text')
+                            ->columns(2)
+                            ->schema([
+                                // Columna Izquierda: Visualización de Documentos de Solicitud
+                                Section::make('Documentos de Solicitud')
+                                    ->columnSpan(1)
+                                    ->description('Documentos cargados originalmente por el solicitante.')
+                                    ->schema([
+                                        Placeholder::make('lista_documentos_solicitud')
+                                            ->label('')
+                                            ->content(fn (Requisicion $record) => new HtmlString(
+                                                collect($record->documentos->where('tipo_documento', 'Requisición'))->map(function($doc) {
+                                                    $url = Storage::url($doc->ruta_archivo);
+                                                    return "
+                                                        <div class='mb-4 p-2 border rounded'>
+                                                            <p class='font-bold text-sm mb-2'>{$doc->nombre_archivo}</p>
+                                                            <iframe src='{$url}' width='100%' height='400px' style='border: none;'></iframe>
+                                                            <div class='mt-2 text-right'>
+                                                                <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Abrir en nueva pestaña</a>
+                                                            </div>
+                                                        </div>
+                                                    ";
+                                                })->join('') ?: '<p class="text-gray-500 italic">No hay documentos de solicitud adjuntos.</p>'
+                                            ))
+                                    ]),
+
+                                // Columna Derecha: Carga de Cotizaciones (Nuevos Documentos)
+                                Section::make('Cargar Cotización')
+                                    ->columnSpan(1)
+                                    ->description('Suba aquí el PDF de la cotización recibida del proveedor.')
+                                    ->schema([
+                                        // Usamos un Repeater filtrado solo para Cotizaciones.
+                                        // Filament manejará la creación de nuevos registros con este tipo automáticamente.
+                                        // Al estar filtrado, no mostrará ni afectará a los de tipo 'Requisición'.
+                                        Repeater::make('documentos_cotizacion')
+                                            ->relationship('documentos', fn ($query) => $query->where('tipo_documento', 'Cotización'))
+                                            ->label('Archivos de Cotización')
+                                            ->schema([
+                                                FileUpload::make('ruta_archivo')
+                                                    ->label('Archivo PDF')
+                                                    ->disk('public')
+                                                    ->directory('cotizaciones')
+                                                    ->acceptedFileTypes(['application/pdf'])
+                                                    ->storeFileNamesIn('nombre_archivo')
+                                                    ->required()
+                                                    ->columnSpanFull()
+                                                    ->downloadable()
+                                                    ->openable(),
+                                                
+                                                // Campo oculto o readonly para nombre_archivo no es necesario si solo se usa internamente,
+                                                // pero Filament necesita saber que existe en el schema si se va a usar en storeFileNamesIn y validaciones.
+                                                // Lo dejamos Hidden para que no moleste en la UI pero exista en el state.
+                                                Hidden::make('nombre_archivo'),
+
+                                                TextInput::make('comentarios')
+                                                     ->label('Comentarios / Referencia')
+                                                     ->default('Cotización Proveedor'),
+
+
+                                                Hidden::make('tipo_documento')->default('Cotización'),
+                                            ])
+                                            ->addActionLabel('Agregar otra cotización')
+                                            ->disabled(fn (?Requisicion $record) => isset($record) && $record->id_estatus !== 3)
+                                            ->deletable(false)
+                                            ->reorderable(false)
+                                            ->collapsible()
+                                            ->defaultItems(1)
+                                ]),
+
+                                Section::make('Órdenes de Compra')
+                                    ->columnSpan(1)
+                                    ->visible(fn (Requisicion $record) => in_array($record->id_estatus, [5, 6, 7, 8]))
+                                    ->description('Suba aquí el PDF de la orden de compra generada.')
+                                    ->schema([
+                                        Repeater::make('documentos_orden_compra')
+                                            ->relationship('documentos', fn ($query) => $query->where('tipo_documento', 'Orden de Compra'))
+                                            ->label('Archivos de Orden de Compra')
+                                            ->schema([
+                                                FileUpload::make('ruta_archivo')
+                                                    ->label('Archivo PDF')
+                                                    ->disk('public')
+                                                    ->directory('ordenes_compra')
+                                                    ->acceptedFileTypes(['application/pdf'])
+                                                    ->storeFileNamesIn('nombre_archivo')
+                                                    ->required()
+                                                    ->columnSpanFull()
+                                                    ->downloadable()
+                                                    ->openable(),
+                                                Hidden::make('nombre_archivo'),
+                                                TextInput::make('comentarios')
+                                                    ->label('Comentarios / Referencia')
+                                                    ->default('Orden de Compra'),
+                                                Hidden::make('tipo_documento')->default('Orden de Compra'),
+                                            ])
+                                            ->deletable(false)
+                                            ->disabled(fn (?Requisicion $record) => isset($record) && ! in_array($record->id_estatus, [5, 6, 7, 8]))
+                                            ->addActionLabel('Subir Orden de Compra')
+                                            ->reorderable(false)
+                                            ->collapsible()
+                                            ->defaultItems(0)
+                                    ])
+                            ])
+                    ])
+                    ->columnSpanFull()
             ]);
     }
 
@@ -61,148 +262,98 @@ class GestionComprasResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('folio')->label('Folio')->searchable()->sortable(),
-                TextColumn::make('concepto')->label('Concepto')->searchable(),
+                TextColumn::make('concepto')->label('Concepto')->searchable()->limit(30),
                 TextColumn::make('solicitante.name')->label('Solicitante'),
                 TextColumn::make('departamento.nombre')->label('Departamento'),
-                TextColumn::make('fecha_creacion')->label('Fecha de Creación')->date()->sortable(),
+                TextColumn::make('fecha_creacion')->label('Fecha')->date()->sortable(),
+                TextColumn::make('estatus.nombre')
+                    ->label('Estatus')
+                    ->badge()
+                    ->color(function ($record) {
+                        $color = \App\Models\Recepcion\Estatus::find($record->id_estatus)?->color;
+                        
+                        if (!$color) {
+                            return 'gray';
+                        }
+
+                        if (str_starts_with($color, '#')) {
+                            return Color::hex($color);
+                        }
+
+                        return $color;
+                    }),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                EditAction::make('Gestionar')
-                    ->form(fn(Requisicion $record) => [
-                        Tabs::make('Tabs')
-                            ->tabs([
-                                Tabs\Tab::make('Generar Orden de Compra Digital')
-                                    ->schema([
-                                        TextInput::make('nombre_proveedor')
-                                            ->label('Nombre del Proveedor')
-                                            ->required(fn ($get) => empty($get('documento_escaneado'))),
-                                        Repeater::make('detalles')
-                                            ->label('Artículos de la Requisición')
-                                            ->schema([
-                                                Hidden::make('id_detalle_requisicion'),
-                                                TextInput::make('cantidad')
-                                                    ->label('Cantidad')
-                                                    ->disabled()
-                                                    ->numeric(),
-                                                TextInput::make('unidad_medida')
-                                                    ->label('Unidad de Medida')
-                                                    ->disabled(),
-                                                TextInput::make('descripcion')
-                                                    ->label('Descripción')
-                                                    ->disabled(),
-                                                TextInput::make('precio_unitario')
-                                                    ->label('Precio Unitario')
-                                                    ->required(fn ($get) => !empty($get('nombre_proveedor')))
-                                                    ->numeric()
-                                                    ->prefix('$'),
-                                            ])
-                                            ->default(function () use ($record) {
-                                                return $record->detalles->map(fn ($detalle) => [
-                                                    'id_detalle_requisicion' => $detalle->id_detalle_requisicion,
-                                                    'cantidad' => $detalle->cantidad,
-                                                    'unidad_medida' => $detalle->unidad_medida,
-                                                    'descripcion' => $detalle->descripcion,
-                                                ])->toArray();
-                                            })
-                                            ->columns(4)
-                                            ->addable(false)
-                                            ->deletable(false)
-                                            ->reorderable(false),
-                                    ]),
-                                Tabs\Tab::make('Subir Documento Escaneado')
-                                    ->schema([
-                                        FileUpload::make('documento_escaneado')
-                                            ->label('Orden de Compra Escaneada')
-                                            ->acceptedFileTypes(['application/pdf', 'image/*'])
-                                            ->disk('public')
-                                            ->directory('ordenes-compra-escaneadas')
-                                            ->required(fn ($get) => empty($get('nombre_proveedor'))),
-                                    ]),
-                            ])
-                    ])
-                    ->action(function (array $data, Requisicion $record) {
-                        try {
-                            DB::beginTransaction();
-
-                            // Lógica para la Pestaña 1: Orden de Compra Digital
-                            if (!empty($data['nombre_proveedor'])) {
-                                $totalCalculado = collect($data['detalles'])->reduce(function ($carry, $item) {
-                                    return $carry + ($item['cantidad'] * $item['precio_unitario']);
-                                }, 0);
-
-                                $ordenCompra = OrdenCompra::create([
-                                    'id_requisicion' => $record->id_requisicion,
-                                    'nombre_proveedor' => $data['nombre_proveedor'],
-                                    'fecha_orden' => Carbon::now(),
-                                    'total_calculado' => $totalCalculado,
-                                    'id_usuario_gestor' => Auth::id(),
-                                ]);
-
-                                foreach ($data['detalles'] as $detalle) {
-                                    DetalleOrdenCompra::create([
-                                        'id_orden_compra' => $ordenCompra->id_orden_compra,
-                                        'id_detalle_requisicion' => $detalle['id_detalle_requisicion'],
-                                        'precio_unitario' => $detalle['precio_unitario'],
-                                        'subtotal' => $detalle['cantidad'] * $detalle['precio_unitario'],
-                                    ]);
-                                }
-                            }
-
-                            // Lógica para la Pestaña 2: Documento Escaneado
-                            if (!empty($data['documento_escaneado'])) {
-                                Documento::create([
-                                    'id_requisicion' => $record->id_requisicion,
-                                    'tipo_documento' => 'Orden de Compra',
-                                    'nombre_archivo' => $data['documento_escaneado'],
-                                    'ruta_archivo' => $data['documento_escaneado'],
-                                    'comentarios' => 'Orden de compra escaneada.',
-                                ]);
-                            }
-
-                            // Tarea 4: Cambiar estatus de la requisición
-                            $record->id_estatus = 2; // "En Revisión"
-                            $record->save();
-
-                            DB::commit();
-                            Notification::make()
-                                ->title('Éxito')
-                                ->body('La requisición ha sido procesada y enviada a revisión.')
-                                ->success()
-                                ->send();
-
-                        } catch (\Exception $e) {
-                            DB::rollBack();
-                            Notification::make()
-                                ->title('Error')
-                                ->body('Ocurrió un error al procesar la requisición: ' . $e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
+                ViewAction::make(),
+                EditAction::make()
+                    ->label(fn (Requisicion $record) => $record->id_estatus == 3 ? 'Cotizar' : 'Subir OC')
+                    ->icon(fn (Requisicion $record) => $record->id_estatus == 3 ? null : 'heroicon-o-document-plus')
+                    ->color(fn (Requisicion $record) => $record->id_estatus == 3 ? 'warning' : 'success')
+                    ->visible(fn (Requisicion $record) => in_array($record->id_estatus, [3, 5])),
+                Action::make('marcar_lista_entrega')
+                    ->label('Recibido en Oficina')
+                    ->icon('heroicon-o-truck')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirmar Recepción')
+                    ->modalDescription('¿Confirmas que los materiales ya han llegado a las oficinas de compras y están listos para ser entregados?')
+                    ->action(function (Requisicion $record) {
+                        $record->id_estatus = 7; // Lista para Entrega
+                        $record->save();
+                        Notification::make()
+                            ->title('Requisición lista para entrega')
+                            ->success()
+                            ->send();
                     })
-                    ->modalWidth('7xl')
-                    ->slideOver(),
-            ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                DeleteBulkAction::make(),
-                ]),
+                    ->visible(fn (Requisicion $record) => $record->id_estatus == 6), // En Proceso de Compra
+
+                Action::make('marcar_completada')
+                    ->label('Entregado (Completar)')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Confirmar Entrega Final')
+                    ->modalDescription('¿Confirmas que los materiales han sido entregados al solicitante? Esto finalizará el ciclo.')
+                    ->action(function (Requisicion $record) {
+                        $record->id_estatus = 8; // Completada
+                        $record->fecha_entrega = now();
+                        $record->save();
+                        Notification::make()
+                            ->title('Requisición completada')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (Requisicion $record) => $record->id_estatus == 7), // Lista para Entrega
             ]);
     }
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->where('id_estatus', 4) // "En cotización"
-            ->where('id_usuario', Auth::id());
+        $query = parent::getEloquentQuery();
+        
+        /** @var \App\Models\Usuarios\Usuario $user */
+        $user = Auth::user();
+
+        // Si es Gestor de Compras, filtrar las requisiciones asignadas y con los estatus permitidos
+        if ($user && $user->rol->nombre == 'Gestor de Compras') {
+            $query->where('id_usuario', $user->id_usuario) // Asignada a este gestor
+                  ->whereIn('id_estatus', [3, 4, 5, 6, 7, 8, 9]); // Estatus permitidos
+        }
+
+        return $query;
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListGestionCompras::route('/'),
+            'create' => Pages\CreateGestionCompras::route('/create'),
+            'view' => Pages\ViewGestionCompras::route('/{record}'),
+            'edit' => Pages\EditGestionCompras::route('/{record}/edit'),
+
         ];
     }
 }

@@ -60,6 +60,11 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            'dump' => [
+                'dump_binary_path' => 'D:/Xammp/mysql/bin/', // Ruta completa
+                'use_single_transaction' => true,
+                'add_extra_option' => '--password='.env('DB_PASSWORD'), // Envía la contraseña directamente
+            ],
         ],
 
         'mariadb' => [
