@@ -112,7 +112,8 @@ class GestionComprasResource extends Resource
                                         DatePicker::make('fecha_cotizacion')
                                             ->label('Fecha de Cotización')
                                             ->default(now())
-                                            ->required(),
+                                            ->required()
+                                            ->columnSpan(2),
                                         
                                         Repeater::make('detalles')
                                             ->relationship()
@@ -138,7 +139,8 @@ class GestionComprasResource extends Resource
                                                     ->disabled()
                                                     ->dehydrated()
                                             ])
-                                            ->columns(5)
+                                            ->columns(6)
+                                            
                                             ->addable(false)
                                             ->deletable(false)
                                             ->visible(fn ($record) => $record->requisicion && $record->requisicion->detalles()->exists())

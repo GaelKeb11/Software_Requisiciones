@@ -12,7 +12,7 @@ class DetalleOrdenCompra extends Model
     use HasFactory;
 
     protected $table = 'detalle_orden_compra';
-    protected $primaryKey = 'id_detalle_orden';
+    protected $primaryKey = 'id_detalle_orden_compra';
 
     protected $fillable = [
         'id_orden_compra',

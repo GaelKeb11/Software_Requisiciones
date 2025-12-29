@@ -18,6 +18,7 @@
         "maatwebsite/excel": "^3.1.55",
         "pragmarx/google2fa-qrcode": "^3.0",
         "spatie/laravel-activitylog": "^4.10",
+        "spatie/laravel-csp": "^2.10",
         "symfony/process": "^7.3"
     },
     "require-dev": {

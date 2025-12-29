@@ -31,4 +31,3 @@ class DetalleCotizacion extends Model
         return $this->belongsTo(DetalleRequisicion::class, 'id_detalle_requisicion');
     }
 }
-
