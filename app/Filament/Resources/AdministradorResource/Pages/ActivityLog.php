@@ -3,13 +3,12 @@
 namespace App\Filament\Resources\AdministradorResource\Pages;
 
 use App\Filament\Resources\AdministradorResource;
-use Filament\Resources\Pages\Page;
-use Illuminate\Support\Facades\File;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LogsExport;
+use Filament\Resources\Pages\Page;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Activitylog\Models\Activity;
 use Filament\Actions\Action;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Usuarios\Usuario;
 
 class ActivityLog extends Page
 {
@@ -28,17 +27,41 @@ class ActivityLog extends Page
 
     public function loadLogs(): void
     {
-        $logFile = storage_path('logs/laravel.log');
-
-        if (File::exists($logFile)) {
-            $content = File::get($logFile);
-            // Simple parsing logic, can be improved based on log format
-            // Assuming default Laravel log format
-            $lines = explode("\n", $content);
-            $this->logs = array_filter($lines);
-            // Get last 100 lines for display performance
-            $this->logs = array_slice(array_reverse($this->logs), 0, 100);
-        }
+        // Trae los últimos 200 registros del activity_log con columnas relevantes
+        $this->logs = Activity::query()
+            ->latest('created_at')
+            ->limit(200)
+            ->get([
+                'id',
+                'log_name',
+                'description',
+                'subject_type',
+                'event',
+                'subject_id',
+                'causer_type',
+                'causer_id',
+                'properties',
+                'batch_uuid',
+                'created_at',
+                'updated_at',
+            ])
+            ->map(function (Activity $activity) {
+                return [
+                    'id' => $activity->id,
+                    'log_name' => $activity->log_name,
+                    'description' => $activity->description,
+                    'subject_type' => $activity->subject_type,
+                    'event' => $activity->event,
+                    'subject_id' => $activity->subject_id,
+                    'causer_type' => $activity->causer_type,
+                    'causer_id' => $activity->causer_id,
+                    'properties' => $activity->properties,
+                    'batch_uuid' => $activity->batch_uuid,
+                    'created_at' => optional($activity->created_at)->toDateTimeString(),
+                    'updated_at' => optional($activity->updated_at)->toDateTimeString(),
+                ];
+            })
+            ->toArray();
     }
 
     public function getHeaderActions(): array
@@ -48,7 +71,7 @@ class ActivityLog extends Page
                 ->label('Exportar a Excel')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->action(function () {
-                    return Excel::download(new LogsExport($this->logs), 'system_logs.xlsx');
+                    return Excel::download(new LogsExport($this->logs), 'activity_log.xlsx');
                 }),
         ];
     }

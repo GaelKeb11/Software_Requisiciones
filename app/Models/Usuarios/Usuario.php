@@ -48,6 +48,7 @@ class Usuario extends Authenticatable implements FilamentUser, HasAppAuthenticat
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'app_authentication_secret' => 'encrypted',
+            'numero_telefonico' => 'encrypted',
         ];
     }
     

@@ -9,11 +9,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Solicitud\DetalleRequisicion;
 use App\Models\Compras\Cotizacion;
 use App\Models\Usuarios\Usuario;
+use App\Notifications\NuevaRequisicionNotification;
+use App\Notifications\RequisicionAsignadaNotification;
+use App\Notifications\RequisicionEnviadaTesoreriaNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use App\Models\Recepcion\Estatus;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Enums\RolEnum;
+use App\Mail\RequisicionCreada;
 
 
 class Requisicion extends Model
@@ -43,6 +50,7 @@ class Requisicion extends Model
         'fecha_creacion' => 'date',
         'fecha_recepcion' => 'date',
         'fecha_entrega' => 'date',
+        'concepto' => 'encrypted',
     ];
 
     protected static function booted()
@@ -61,8 +69,65 @@ class Requisicion extends Model
             
         });
 
-        static::saved(function ($requisicion) {
-            // The document handling logic is removed as per the edit hint.
+        static::created(function (Requisicion $requisicion) {
+            // Notificar a secretarias (recepcionistas) y gestores de compras de nueva requisición
+            $destinatarios = Usuario::query()
+                ->whereHas('rol', function ($q) {
+                    $q->whereIn('nombre', [
+                        RolEnum::RECEPCIONISTA->value,
+                        RolEnum::GESTOR_COMPRAS->value,
+                    ]);
+                })
+                ->get();
+
+            if ($destinatarios->isNotEmpty()) {
+                Notification::send($destinatarios, new NuevaRequisicionNotification($requisicion));
+            }
+
+            // Enviar correo a los destinatarios con email definido
+            $emails = $destinatarios->pluck('email')->filter()->all();
+            if (!empty($emails)) {
+                Mail::to($emails)->send(new RequisicionCreada($requisicion));
+            }
+        });
+
+        static::updated(function (Requisicion $requisicion) {
+            $originalEstatus = $requisicion->getOriginal('id_estatus');
+            $originalGestor = $requisicion->getOriginal('id_usuario');
+
+            // Avisar cuando se asigna un gestor (id_usuario cambia y estatus pasa a 3)
+            if (
+                $requisicion->id_usuario &&
+                $requisicion->id_usuario !== $originalGestor &&
+                $requisicion->id_estatus == 3
+            ) {
+                $gestor = Usuario::find($requisicion->id_usuario);
+                if ($gestor) {
+                    Notification::send($gestor, new RequisicionAsignadaNotification($requisicion));
+                }
+            }
+
+            // Avisar a Tesorería cuando la requisición se envía para aprobación (estatus = 4)
+            if ($requisicion->id_estatus == 4 && $originalEstatus != 4) {
+                $tesoreria = Usuario::query()
+                    ->whereHas('rol', fn ($q) => $q->where('nombre', RolEnum::TESORERIA->value))
+                    ->get();
+
+                if ($tesoreria->isNotEmpty()) {
+                    Notification::send($tesoreria, new RequisicionEnviadaTesoreriaNotification($requisicion));
+                }
+            }
+
+            // Avisar a recepcionistas cuando la requisición esté en estatus 2 (Recibida)
+            if ($requisicion->id_estatus == 2 && $originalEstatus != 2) {
+                $recepcionistas = Usuario::query()
+                    ->whereHas('rol', fn ($q) => $q->where('nombre', RolEnum::RECEPCIONISTA->value))
+                    ->get();
+
+                if ($recepcionistas->isNotEmpty()) {
+                    Notification::send($recepcionistas, new NuevaRequisicionNotification($requisicion));
+                }
+            }
         });
     }
 

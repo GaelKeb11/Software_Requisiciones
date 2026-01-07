@@ -22,7 +22,7 @@ class EncryptExistingData extends Command
             \App\Models\Compras\OrdenCompra::class => ['nombre_proveedor', 'total_calculado'],
             \App\Models\Compras\DetalleOrdenCompra::class => ['precio_unitario', 'subtotal'],
             \App\Models\Recepcion\Requisicion::class => ['concepto'],
-            \App\Models\Solicitud\DetalleRequisicion::class => ['descripcion', 'total'],
+            \App\Models\Solicitud\DetalleRequisicion::class => ['descripcion'],
             \App\Models\Usuarios\Usuario::class => ['numero_telefonico'],
         ];
 

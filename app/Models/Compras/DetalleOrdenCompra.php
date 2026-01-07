@@ -21,6 +21,11 @@ class DetalleOrdenCompra extends Model
         'subtotal',
     ];
 
+    protected $casts = [
+        'precio_unitario' => 'encrypted',
+        'subtotal' => 'encrypted',
+    ];
+
     public function ordenCompra(): BelongsTo
     {
         return $this->belongsTo(OrdenCompra::class, 'id_orden_compra', 'id_orden_compra');

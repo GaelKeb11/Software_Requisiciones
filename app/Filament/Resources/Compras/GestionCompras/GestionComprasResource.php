@@ -15,45 +15,34 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\FileUpload;
-use App\Models\Compras\OrdenCompra;
-use App\Models\Compras\DetalleOrdenCompra;
-use App\Models\Recepcion\Documento;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Filament\Notifications\Notification;
-
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Section;
-use App\Filament\Resources\Compras\GestionCompras\Pages\ViewGestionCompras;
-
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Forms\Components\Placeholder;
+use Filament\Schemas\Schema;
+use Filament\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
+use Filament\Support\Colors\Color;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Storage;
-
+use App\Filament\Resources\Compras\GestionCompras\Pages\ViewGestionCompras;
+use App\Models\Compras\OrdenCompra;
+use App\Models\Compras\DetalleOrdenCompra;
+use App\Models\Recepcion\Documento;
 use App\Models\Usuarios\Usuario;
-use Filament\Actions\Action;
-use Filament\Schemas\Schema;
 use BackedEnum;
 use UnitEnum;
-
-use Filament\Actions\EditAction;
-use Illuminate\Support\Facades\Auth;
-
-use Filament\Support\Icons\Heroicon;
-use Filament\Resources\Pages\ViewRecord;
-use Filament\Support\Colors\Color;
 
 class GestionComprasResource extends Resource
 {
     protected static ?string $model = Requisicion::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-storefront';
     protected static ?string $navigationLabel = 'Gestión de Compras';
     protected static ?string $slug = 'gestion-compras';
     protected static ?string $modelLabel = 'Requisición para Compra';
@@ -105,25 +94,42 @@ class GestionComprasResource extends Resource
                                     ->relationship()
                                     ->label('Cotización por Items')
                                     ->schema([
-                                        TextInput::make('nombre_proveedor')
-                                            ->label('Nombre del Proveedor')
-                                            ->required()
-                                            ->columnSpan(2),
-                                        DatePicker::make('fecha_cotizacion')
-                                            ->label('Fecha de Cotización')
-                                            ->default(now())
-                                            ->required()
-                                            ->columnSpan(2),
-                                        
+                                        Section::make('Datos del Proveedor')
+                                            ->columns(2)
+                                            ->schema([
+                                                TextInput::make('nombre_proveedor')
+                                                    ->label('Nombre del Proveedor')
+                                                    ->required()
+                                                    ->columnSpan(1),
+                                                DatePicker::make('fecha_cotizacion')
+                                                    ->label('Fecha de Cotización')
+                                                    ->default(now())
+                                                    ->required()
+                                                    ->columnSpan(1),
+                                            ]),
+
+                                        Placeholder::make('items_header')
+                                            ->label('')
+                                            ->content(new HtmlString('
+                                                <div class="grid grid-cols-6 gap-4 border-b pb-2 mb-2">
+                                                    <div class="text-sm font-medium text-gray-600 dark:text-gray-300 col-span-2">Descripción</div>
+                                                    <div class="text-sm font-medium text-gray-600 dark:text-gray-300">U.M.</div>
+                                                    <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Cantidad</div>
+                                                    <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Precio Unitario</div>
+                                                    <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Subtotal</div>
+                                                </div>
+                                            ')),
+
                                         Repeater::make('detalles')
                                             ->relationship()
                                             ->label('Ítems a Cotizar')
+                                            ->labelHidden()
                                             ->schema([
-                                                TextInput::make('descripcion')->label('Descripción')->disabled(),
-                                                TextInput::make('unidad_medida')->label('U.M.')->disabled(),
-                                                TextInput::make('cantidad_cotizada')->label('Cantidad')->numeric()->disabled(),
+                                                TextInput::make('descripcion')->labelHidden()->disabled()->columnSpan(2),
+                                                TextInput::make('unidad_medida')->labelHidden()->disabled()->columnSpan(1),
+                                                TextInput::make('cantidad_cotizada')->labelHidden()->numeric()->disabled()->columnSpan(1),
                                                 TextInput::make('precio_unitario')
-                                                    ->label('Precio Unitario')
+                                                    ->labelHidden()
                                                     ->numeric()
                                                     ->prefix('$')
                                                     ->live(onBlur: true)
@@ -131,13 +137,15 @@ class GestionComprasResource extends Resource
                                                         $cantidad = $get('cantidad_cotizada') ?? 0;
                                                         $set('subtotal', round($state * $cantidad, 2));
                                                     })
-                                                    ->required(),
+                                                    ->required()
+                                                    ->columnSpan(1),
                                                 TextInput::make('subtotal')
-                                                    ->label('Subtotal')
+                                                    ->labelHidden()
                                                     ->numeric()
                                                     ->prefix('$')
                                                     ->disabled()
                                                     ->dehydrated()
+                                                    ->columnSpan(1)
                                             ])
                                             ->columns(6)
                                             
@@ -191,10 +199,10 @@ class GestionComprasResource extends Resource
                                             ->label('Archivos de Cotización')
                                             ->schema([
                                                 FileUpload::make('ruta_archivo')
-                                                    ->label('Archivo PDF')
+                                                    ->label('Archivo PDF o JPG')
                                                     ->disk('public')
                                                     ->directory('cotizaciones')
-                                                    ->acceptedFileTypes(['application/pdf'])
+                                                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/jpg'])
                                                     ->storeFileNamesIn('nombre_archivo')
                                                     ->required()
                                                     ->columnSpanFull()
@@ -231,10 +239,10 @@ class GestionComprasResource extends Resource
                                             ->label('Archivos de Orden de Compra')
                                             ->schema([
                                                 FileUpload::make('ruta_archivo')
-                                                    ->label('Archivo PDF')
+                                                    ->label('Archivo PDF o JPG')
                                                     ->disk('public')
                                                     ->directory('ordenes_compra')
-                                                    ->acceptedFileTypes(['application/pdf'])
+                                                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/jpg'])
                                                     ->storeFileNamesIn('nombre_archivo')
                                                     ->required()
                                                     ->columnSpanFull()

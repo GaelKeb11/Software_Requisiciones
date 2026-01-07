@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 use App\Models\Recepcion\Requisicion;
 use App\Models\Recepcion\Documento;
 use App\Observers\RequisicionObservador;
@@ -29,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         // Registrar relaciones polimórficas si son necesarias
         Requisicion::resolveRelationUsing('documentos', function ($requisicionModel) {
             return;
