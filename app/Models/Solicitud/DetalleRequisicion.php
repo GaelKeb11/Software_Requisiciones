@@ -19,6 +19,15 @@ class DetalleRequisicion extends Model
         'total'
     ];
 
+    protected $casts = [
+        'descripcion' => 'encrypted',
+        'total' => 'decimal:2',
+    ];
+
+    protected $attributes = [
+        'total' => 0,
+    ];
+
     public function requisicion(): BelongsTo
     {
         return $this->belongsTo(Requisicion::class, 'id_requisicion');

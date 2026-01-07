@@ -200,6 +200,7 @@ class FormularioRequisicion
                                             ->storeFileNamesIn('nombre_archivo')
                                             ->disk('public')
                                             ->directory('requisiciones-documentos')
+                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/jpg'])
                                             ->visibility('public')
                                             ->downloadable()
                                             ->openable(),

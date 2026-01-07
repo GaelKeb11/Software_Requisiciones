@@ -12,13 +12,18 @@ class DetalleOrdenCompra extends Model
     use HasFactory;
 
     protected $table = 'detalle_orden_compra';
-    protected $primaryKey = 'id_detalle_orden';
+    protected $primaryKey = 'id_detalle_orden_compra';
 
     protected $fillable = [
         'id_orden_compra',
         'id_detalle_requisicion',
         'precio_unitario',
         'subtotal',
+    ];
+
+    protected $casts = [
+        'precio_unitario' => 'encrypted',
+        'subtotal' => 'encrypted',
     ];
 
     public function ordenCompra(): BelongsTo

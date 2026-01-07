@@ -24,6 +24,11 @@ class OrdenCompra extends Model
         'id_usuario_gestor',
     ];
 
+    protected $casts = [
+        'nombre_proveedor' => 'encrypted',
+        'total_calculado' => 'encrypted',
+    ];
+
     public function requisicion(): BelongsTo
     {
         return $this->belongsTo(Requisicion::class, 'id_requisicion', 'id_requisicion');

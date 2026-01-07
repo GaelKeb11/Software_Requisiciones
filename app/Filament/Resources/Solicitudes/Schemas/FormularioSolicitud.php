@@ -101,6 +101,7 @@ class FormularioSolicitud
                                         ->label('Total')
                                         ->numeric()
                                         ->default(0)
+                                        ->dehydrated(true)
                                         ->disabled(),
                                 ])
                                 ->addActionLabel('+ Añadir Artículo')

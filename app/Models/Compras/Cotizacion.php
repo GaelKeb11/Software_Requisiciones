@@ -23,6 +23,8 @@ class Cotizacion extends Model
 
     protected $casts = [
         'fecha_cotizacion' => 'date',
+        'nombre_proveedor' => 'encrypted',
+        'total_cotizado' => 'encrypted',
     ];
 
     public function requisicion(): BelongsTo
