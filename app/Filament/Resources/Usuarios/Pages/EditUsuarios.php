@@ -39,8 +39,8 @@ class EditUsuarios extends EditRecord
         }
 
         $grupo = match ($rolNombre) {
-            'Director' => $deptoNombre === 'Compras' ? 'Compras' : 'Director',
-            'Recepcionista', 'Gestor de Compras' => 'Compras',
+            'Director' => $deptoNombre === 'Dirección de Administración' ? 'DireccionAdministracion' : 'Director',
+            'Recepcionista', 'Gestor de Administración', 'Gestor de Compras' => 'DireccionAdministracion',
             'Solicitante' => 'Solicitante',
             default => null,
         };

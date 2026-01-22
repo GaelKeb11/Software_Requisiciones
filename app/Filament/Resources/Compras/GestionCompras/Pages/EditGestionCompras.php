@@ -70,20 +70,16 @@ class EditGestionCompras extends EditRecord
                 ->action(function () {
                     $this->save(); // Guardar cambios primero
                     
-                    // Validaciones básicas
-                    // Si es Caso 1: Verificar totales > 0
-                    if ($this->record->detalles()->exists()) {
-                        $cotizacion = $this->record->cotizaciones()->first();
-                        if ($cotizacion && $cotizacion->detalles()->sum('subtotal') <= 0) {
-                             Notification::make()
-                                ->title('Error')
-                                ->body('Debe ingresar precios para los ítems.')
-                                ->danger()
-                                ->send();
-                            return;
-                        }
+                    // Validación: debe existir al menos un adjunto en la cotización
+                    $cotizacion = $this->record->cotizaciones()->first();
+                    if ($cotizacion && ! $cotizacion->adjuntos()->exists()) {
+                        Notification::make()
+                            ->title('Falta adjuntar cotización')
+                            ->body('Sube al menos un PDF o imagen de la cotización del proveedor.')
+                            ->danger()
+                            ->send();
+                        return;
                     }
-                    // Si es Caso 2: Verificar documento? (El campo es required en el form, pero validamos aquí también si se quiere)
                     
                     // Transición de Estatus
                     $this->record->update(['id_estatus' => 4]); // 4 = Pendiente de Aprobación

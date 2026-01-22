@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Recepcion\Requisicion;
 use App\Models\Usuarios\Usuario;
+use App\Models\Compras\CotizacionAdjunto;
 
 class Cotizacion extends Model
 {
@@ -41,6 +42,11 @@ class Cotizacion extends Model
     public function detalles(): HasMany
     {
         return $this->hasMany(DetalleCotizacion::class, 'id_cotizacion');
+    }
+
+    public function adjuntos(): HasMany
+    {
+        return $this->hasMany(CotizacionAdjunto::class, 'id_cotizacion');
     }
 }
 

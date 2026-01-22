@@ -22,7 +22,9 @@ return new class extends Migration
             $table->decimal('total_cotizado', 10, 2)->default(0);
             
             $table->unsignedBigInteger('id_usuario_gestor');
-            $table->foreign('id_usuario_gestor')->references('id_usuario')->on('users');
+            $table->foreign('id_usuario_gestor')
+                ->references('id')
+                ->on('users');
 
             $table->timestamps();
         });

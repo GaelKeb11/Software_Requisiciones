@@ -89,7 +89,6 @@ class AprobacionTesoreriaResource extends Resource
                                             ->schema([
                                                 TextInput::make('nombre_proveedor')->label('Proveedor')->disabled(),
                                                 DatePicker::make('fecha_cotizacion')->label('Fecha')->disabled(),
-                                                TextInput::make('total_cotizado')->label('Total')->prefix('$')->disabled(),
 
                                                 Repeater::make('detalles')
                                                     ->relationship()
@@ -98,10 +97,8 @@ class AprobacionTesoreriaResource extends Resource
                                                         TextInput::make('descripcion')->label('Descripción')->disabled(),
                                                         TextInput::make('unidad_medida')->label('U.M.')->disabled(),
                                                         TextInput::make('cantidad_cotizada')->label('Cantidad')->disabled(),
-                                                        TextInput::make('precio_unitario')->label('Precio Unitario')->prefix('$')->disabled(),
-                                                        TextInput::make('subtotal')->label('Subtotal')->prefix('$')->disabled(),
                                                     ])
-                                                    ->columns(5)
+                                                    ->columns(3)
                                                     ->addable(false)
                                                     ->deletable(false)
                                             ])
@@ -114,19 +111,45 @@ class AprobacionTesoreriaResource extends Resource
                                          Placeholder::make('archivo_cotizacion')
                                             ->label('')
                                             ->content(fn (Requisicion $record) => new HtmlString(
-                                                collect($record->documentos->where('tipo_documento', 'Cotización'))->map(function($doc) {
-                                                    $url = Storage::url($doc->ruta_archivo);
-                                                    return "
-                                                        <div class='mb-4 p-2 border rounded'>
-                                                            <p class='font-bold text-sm mb-2'>Documento: {$doc->nombre_archivo}</p>
-                                                            <p class='text-sm mb-2 italic'>{$doc->comentarios}</p>
-                                                            <iframe src='{$url}' width='100%' height='500px' style='border: none;'></iframe>
-                                                            <div class='mt-2 text-right'>
-                                                                <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Descargar / Abrir en nueva pestaña</a>
-                                                            </div>
-                                                        </div>
-                                                    ";
-                                                })->join('') ?: '<p class="text-gray-500 italic">No se ha cargado archivo de cotización.</p>'
+                                                (function () use ($record) {
+                                                    $adjuntos = $record->cotizaciones
+                                                        ->flatMap(fn ($cotizacion) => $cotizacion->adjuntos)
+                                                        ->map(function ($adjunto) {
+                                                            $url = Storage::url($adjunto->ruta_archivo);
+                                                            $nombre = $adjunto->nombre_archivo ?: basename($adjunto->ruta_archivo);
+                                                            $comentarios = $adjunto->comentarios ? "<p class='text-sm mb-2 italic'>{$adjunto->comentarios}</p>" : '';
+                                                            return "
+                                                                <div class='mb-4 p-2 border rounded'>
+                                                                    <p class='font-bold text-sm mb-2'>Documento: {$nombre}</p>
+                                                                    {$comentarios}
+                                                                    <iframe src='{$url}' width='100%' height='500px' style='border: none;'></iframe>
+                                                                    <div class='mt-2 text-right'>
+                                                                        <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Descargar / Abrir en nueva pestaña</a>
+                                                                    </div>
+                                                                </div>
+                                                            ";
+                                                        })
+                                                        ->join('');
+
+                                                    $documentosAntiguos = $record->documentos
+                                                        ->where('tipo_documento', 'Cotización')
+                                                        ->map(function ($doc) {
+                                                            $url = Storage::url($doc->ruta_archivo);
+                                                            return "
+                                                                <div class='mb-4 p-2 border rounded'>
+                                                                    <p class='font-bold text-sm mb-2'>Documento: {$doc->nombre_archivo}</p>
+                                                                    <p class='text-sm mb-2 italic'>{$doc->comentarios}</p>
+                                                                    <iframe src='{$url}' width='100%' height='500px' style='border: none;'></iframe>
+                                                                    <div class='mt-2 text-right'>
+                                                                        <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Descargar / Abrir en nueva pestaña</a>
+                                                                    </div>
+                                                                </div>
+                                                            ";
+                                                        })
+                                                        ->join('');
+
+                                                    return $adjuntos ?: ($documentosAntiguos ?: '<p class="text-gray-500 italic">No se ha cargado archivo de cotización.</p>');
+                                                })()
                                             ))
                                     ])
                             ])

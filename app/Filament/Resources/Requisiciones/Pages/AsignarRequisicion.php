@@ -61,7 +61,7 @@ class AsignarRequisicion extends EditRecord
                 Select::make('id_usuario')
                     ->relationship('usuario', 'name', function ($query) {
                         return $query->whereHas('rol', function ($query) {
-                            $query->where('nombre', 'Gestor de Compras');
+                            $query->whereIn('nombre', ['Gestor de Administración', 'Gestor de Compras']);
                         });
                     })
                     ->label('Asignado a')

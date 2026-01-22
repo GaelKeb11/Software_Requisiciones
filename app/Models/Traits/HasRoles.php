@@ -23,11 +23,14 @@ trait HasRoles
     }
 
     /**
-     * Verifica si el usuario tiene el rol de Gestor de Compras.
+     * Verifica si el usuario tiene el rol de Gestor de la Dirección de Administración.
      */
-    public function esGestorDeCompras(): bool
+    public function esGestorDireccionAdministracion(): bool
     {
-        return $this->rol?->nombre === RolEnum::GESTOR_COMPRAS->value;
+        return in_array($this->rol?->nombre, [
+            RolEnum::GESTOR_ADMINISTRACION->value,
+            'Gestor de Compras', // compatibilidad con nombre previo
+        ], true);
     }
 
     /**
@@ -51,6 +54,6 @@ trait HasRoles
      */
     public function puedeAccederAlPanel(): bool
     {
-        return $this->esAdministrador() || $this->esRecepcionista() || $this->esGestorDeCompras() || $this->esSolicitante();
+        return $this->esAdministrador() || $this->esRecepcionista() || $this->esGestorDireccionAdministracion() || $this->esSolicitante();
     }
 }

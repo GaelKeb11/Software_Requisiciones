@@ -2,18 +2,20 @@
 
 namespace App\Filament\Resources\Solicitudes\Schemas;
 
+use App\Models\Recepcion\Clasificacion;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\ToggleButtons;
+use Filament\Forms\Form;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Forms\Form;
-use Filament\Forms\Components\ToggleButtons;
-use Illuminate\Support\Facades\Auth;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class FormularioSolicitud
 {
@@ -59,10 +61,12 @@ class FormularioSolicitud
                                 ->columnSpanFull(),
                             Select::make('id_clasificacion')
                                 ->label('Clasificación')
-                                ->relationship('clasificacion', 'nombre')
+                                ->options(fn ($get) => self::getGeneralClasificacionesOptions((int) $get('id_clasificacion')))
+                                ->disableOptionWhen(fn ($value) => now()->day > 8 && (int) $value === 2161)
                                 ->searchable()
                                 ->preload()
                                 ->required()
+                                ->helperText('La clasificación 2161 (Material de limpieza) solo está disponible los primeros 8 días de cada mes.')
                                 ->columnSpanFull(),
                             Hidden::make('id_estatus')
                                 ->default(1),
@@ -82,8 +86,8 @@ class FormularioSolicitud
                                         ->required()
                                         ->minValue(1) // Validación de valor mínimo
                                         ->default(1),
-                                    Select::make('unidad_medida')
-                                        ->label('Unidad (Pza, Caja, etc.)')
+                                    Select::make('Tipo de Unidad')
+                                        ->label('Tipo de Unidad')
                                         ->options([
                                             'Materiales	' => 'Materiales',
                                             'Servicios' => 'Servicios',
@@ -91,18 +95,28 @@ class FormularioSolicitud
                                             'Otro' => 'Otros',
                                         ])
                                         ->required(),
+                                    Select::make('id_clasificacion_detalle')
+                                        ->label('Clasificación específica')
+                                        ->required()
+                                        ->options(function (Get $get) {
+                                            $generalId = (int) $get('../../id_clasificacion');
+                                            $current = (int) $get('id_clasificacion_detalle');
+
+                                            return self::getClasificacionesEspecificasPorGeneral($generalId, $current);
+                                        })
+                                        ->disableOptionWhen(fn ($value) => now()->day > 8 && (int) $value === 2161)
+                                        ->searchable()
+                                        ->preload()
+                                        ->live()
+                                        ->columnSpan(2)
+                                        ->helperText('Selecciona la clasificación correspondiente a la general elegida.'),
                                     TextInput::make('descripcion')
                                         ->label('Descripción del Artículo')
                                         ->required()
                                         ->minLength(5) // Validación de longitud mínima
                                         ->maxLength(255) // Validación de longitud máxima
                                         ->columnSpan(2),
-                                    TextInput::make('total')
-                                        ->label('Total')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->dehydrated(true)
-                                        ->disabled(),
+
                                 ])
                                 ->addActionLabel('+ Añadir Artículo')
                                 ->columns(4)
@@ -113,5 +127,91 @@ class FormularioSolicitud
                 ])
                 ->columnSpanFull(),
         ]);
+    }
+
+    public static function getGeneralClasificacionesOptions(?int $currentId = null): array
+    {
+        $generalesPermitidas = [2000, 3000, 5000];
+
+        $clasificaciones = Clasificacion::all()
+            ->filter(function (Clasificacion $clasificacion) use ($generalesPermitidas) {
+                $numero = self::extraerNumeroDesdeNombre($clasificacion->nombre);
+                return $numero !== null && in_array($numero, $generalesPermitidas, true);
+            });
+
+        if (now()->day > 8) {
+            $clasificaciones = $clasificaciones->reject(function (Clasificacion $clasificacion) {
+                return (int) $clasificacion->id_clasificacion === 2161;
+            });
+
+            if ($currentId === 2161) {
+                $actual = Clasificacion::find($currentId);
+                if ($actual) {
+                    $clasificaciones->push($actual);
+                }
+            }
+        }
+
+        return $clasificaciones
+            ->sortBy('nombre')
+            ->pluck('nombre', 'id_clasificacion')
+            ->all();
+    }
+
+    public static function getClasificacionesEspecificasPorGeneral(?int $generalId, ?int $currentId = null): array
+    {
+        if (!$generalId) {
+            return [];
+        }
+
+        $general = Clasificacion::find($generalId);
+        if (!$general) {
+            return [];
+        }
+
+        $numeroGeneral = self::extraerNumeroDesdeNombre($general->nombre);
+        if ($numeroGeneral === null) {
+            return [];
+        }
+
+        $rangeStart = (int) (floor($numeroGeneral / 1000) * 1000);
+        $rangeEnd = $rangeStart + 999;
+
+        $clasificaciones = Clasificacion::all()
+            ->filter(function (Clasificacion $clasificacion) use ($rangeStart, $rangeEnd) {
+                $numero = self::extraerNumeroDesdeNombre($clasificacion->nombre);
+                return $numero !== null && $numero >= $rangeStart && $numero <= $rangeEnd;
+            });
+
+        if (now()->day > 8) {
+            $clasificaciones = $clasificaciones->reject(function (Clasificacion $clasificacion) {
+                return (int) $clasificacion->id_clasificacion === 2161;
+            });
+
+            if ($currentId === 2161) {
+                $actual = Clasificacion::find($currentId);
+                if ($actual) {
+                    $clasificaciones->push($actual);
+                }
+            }
+        }
+
+        return $clasificaciones
+            ->sortBy('nombre')
+            ->pluck('nombre', 'id_clasificacion')
+            ->all();
+    }
+
+    private static function extraerNumeroDesdeNombre(?string $nombre): ?int
+    {
+        if (!$nombre) {
+            return null;
+        }
+
+        if (preg_match('/^\s*(\d{3,4})/', $nombre, $coincidencias)) {
+            return (int) $coincidencias[1];
+        }
+
+        return null;
     }
 }

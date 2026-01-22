@@ -126,7 +126,7 @@ class UsuariosForm
                             Select::make('grupo_rol')
                                 ->label('Grupo de Rol')
                                 ->options([
-                                    'Compras' => 'Personal de Compras',
+                                    'DireccionAdministracion' => 'Personal de Dirección de Administración',
                                     'Solicitante' => 'Solicitantes',
                                     'Director' => 'Directores',
                                     'Tesoreria' => 'Tesorería',
@@ -162,8 +162,8 @@ class UsuariosForm
                                 ->label('Rol Específico')
                                 ->options(function ($get) {
                                     $grupo = $get('grupo_rol');
-                                    if ($grupo === 'Compras') {
-                                        return Rol::whereIn('nombre', ['Recepcionista', 'Gestor de Compras', 'Director'])->pluck('nombre', 'id_rol');
+                                    if ($grupo === 'DireccionAdministracion') {
+                                        return Rol::whereIn('nombre', ['Recepcionista', 'Gestor de Administración', 'Gestor de Compras', 'Director'])->pluck('nombre', 'id_rol');
                                     }
                                     if (in_array($grupo, ['Solicitante', 'Director', 'Tesoreria'])) {
                                         $roleName = $grupo === 'Tesoreria' ? 'Tesorería' : $grupo;
@@ -175,11 +175,11 @@ class UsuariosForm
                                 ->dehydrated()
                                 ->live()
                                 ->afterStateUpdated(function ($get, $set, $state) {
-                                    // Si se ha seleccionado un rol dentro del grupo de Compras,
-                                    // se asigna automáticamente el departamento de Compras.
-                                    if ($get('grupo_rol') === 'Compras' && filled($state)) {
-                                        $comprasDept = Departamento::where('nombre', 'Compras')->first();
-                                        $set('id_departamento', $comprasDept?->id_departamento);
+                                    // Si se ha seleccionado un rol dentro del grupo de Dirección de Administración,
+                                    // se asigna automáticamente ese departamento.
+                                    if ($get('grupo_rol') === 'DireccionAdministracion' && filled($state)) {
+                                        $dirAdmDept = Departamento::where('nombre', 'Dirección de Administración')->first();
+                                        $set('id_departamento', $dirAdmDept?->id_departamento);
                                     }
                                 })
                                 ->required()
@@ -192,8 +192,8 @@ class UsuariosForm
                                     $query = Departamento::query();
 
                                     switch ($grupo) {
-                                        case 'Compras':
-                                            return $query->where('nombre', 'Compras')->pluck('nombre', 'id_departamento');
+                                        case 'DireccionAdministracion':
+                                            return $query->where('nombre', 'Dirección de Administración')->pluck('nombre', 'id_departamento');
 
                                         case 'Tesoreria':
                                             return $query->where('nombre', 'LIKE', '%Tesorería%')

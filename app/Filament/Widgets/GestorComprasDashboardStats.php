@@ -16,7 +16,7 @@ class GestorComprasDashboardStats extends BaseWidget
     {
         /** @var \App\Models\Usuarios\Usuario $user */
         $user = Auth::user();
-        return $user->esGestorDeCompras();
+        return $user->esGestorDireccionAdministracion();
     }
 
     protected function getStats(): array

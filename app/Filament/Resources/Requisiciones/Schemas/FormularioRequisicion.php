@@ -12,6 +12,7 @@ use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Set;
 use App\Models\Recepcion\Departamento;
+use App\Models\Recepcion\Clasificacion;
 use App\Models\Recepcion\Estatus;
 use App\Models\Compras\Cotizacion;
 
@@ -145,10 +146,25 @@ class FormularioRequisicion
                                             ->columnSpan(1),
                                         Select::make('id_clasificacion')
                                             ->label('Clasificación')
-                                            ->relationship('clasificacion', 'nombre')
+                                            ->options(function ($get) {
+                                                $query = Clasificacion::query();
+
+                                                if (now()->day > 8) {
+                                                    $query->where('id_clasificacion', '!=', 2161);
+
+                                                    // Mantener visible el valor actual si es 2161 para ediciones.
+                                                    if ((int) $get('id_clasificacion') === 2161) {
+                                                        $query->orWhere('id_clasificacion', 2161);
+                                                    }
+                                                }
+
+                                                return $query->pluck('nombre', 'id_clasificacion');
+                                            })
+                                            ->disableOptionWhen(fn ($value) => now()->day > 8 && (int) $value === 2161)
                                             ->searchable()
                                             ->preload()
                                             ->required()
+                                            ->helperText('La clasificación 2161 (Material de limpieza) solo está disponible los primeros 8 días de cada mes.')
                                             ->columnSpan(1)
                                             ->visible(fn ($record) => !$record || $record->id_estatus < 2),
                                         TextInput::make('clasificacion_nombre')
@@ -171,14 +187,14 @@ class FormularioRequisicion
                                 Select::make('id_usuario')
                                     ->relationship('usuario', 'name', function ($query) {
                                         return $query->whereHas('rol', function ($query) {
-                                            $query->where('nombre', 'Gestor de Compras');
+                                        $query->whereIn('nombre', ['Gestor de Administración', 'Gestor de Compras']);
                                         });
                                     })
                                     ->label('Asignado a')
                                     ->searchable()
                                     ->preload()
                                     ->columnSpanFull()
-                                    ->disabled(fn ($record) => $record && $record->id_estatus >= 2 && !Auth::user()->rol->nombre == 'Gestor de Compras'),
+                                    ->disabled(fn ($record) => $record && $record->id_estatus >= 2 && !in_array(Auth::user()->rol->nombre, ['Gestor de Administración', 'Gestor de Compras'])),
                             ]),
 
                         // 6. PESTAÑA 2: DOCUMENTOS
@@ -217,7 +233,7 @@ class FormularioRequisicion
                                         if (!$record || $record->id_estatus < 2) return false;
                                         /** @var \App\Models\Usuarios\Usuario $user */
                                         $user = Auth::user();
-                                        if ($user->rol->nombre === 'Gestor de Compras' && in_array($record->id_estatus, [3, 5])) {
+                                        if (in_array($user->rol->nombre, ['Gestor de Administración', 'Gestor de Compras']) && in_array($record->id_estatus, [3, 5])) {
                                             return false;
                                         }
                                         if ($user->esRecepcionista()) return false; // Optional assumption
