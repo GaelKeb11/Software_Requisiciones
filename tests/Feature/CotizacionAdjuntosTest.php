@@ -54,6 +54,7 @@ class CotizacionAdjuntosTest extends TestCase
             $table->string('unidad_medida');
             $table->text('descripcion');
             $table->decimal('total', 10, 2)->nullable()->default(0);
+            $table->boolean('es_activo')->default(false);
             $table->timestamps();
         });
 

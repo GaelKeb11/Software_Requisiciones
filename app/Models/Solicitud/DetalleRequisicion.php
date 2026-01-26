@@ -19,16 +19,19 @@ class DetalleRequisicion extends Model
         'cantidad',
         'unidad_medida',
         'descripcion',
-        'total'
+        'total',
+        'es_activo',
     ];
 
     protected $casts = [
         'descripcion' => 'encrypted',
         'total' => 'decimal:2',
+        'es_activo' => 'boolean',
     ];
 
     protected $attributes = [
         'total' => 0,
+        'es_activo' => false,
     ];
 
     protected static function booted()

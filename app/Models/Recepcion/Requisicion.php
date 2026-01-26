@@ -12,6 +12,7 @@ use App\Models\Usuarios\Usuario;
 use App\Notifications\NuevaRequisicionNotification;
 use App\Notifications\RequisicionAsignadaNotification;
 use App\Notifications\RequisicionEnviadaTesoreriaNotification;
+use App\Notifications\NuevoActivoNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use App\Models\Recepcion\Estatus;
@@ -151,6 +152,21 @@ class Requisicion extends Model
 
                 if ($recepcionistas->isNotEmpty()) {
                     Notification::send($recepcionistas, new NuevaRequisicionNotification($requisicion));
+                }
+            }
+
+            // Marcar artículos como activos y notificar al solicitante cuando se completa (estatus 8) y clasificación >= 5000
+            if (
+                $requisicion->id_estatus == 8 &&
+                $originalEstatus != 8 &&
+                (int) $requisicion->id_clasificacion >= 5000
+            ) {
+                $requisicion->detalles()
+                    ->where('es_activo', false)
+                    ->update(['es_activo' => true]);
+
+                if ($requisicion->solicitante) {
+                    Notification::send($requisicion->solicitante, new NuevoActivoNotification($requisicion));
                 }
             }
         });
