@@ -31,10 +31,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Storage;
 use App\Filament\Resources\Compras\GestionCompras\Pages\ViewGestionCompras;
-use App\Models\Compras\OrdenCompra;
-use App\Models\Compras\DetalleOrdenCompra;
-use App\Models\Recepcion\Documento;
-use App\Models\Usuarios\Usuario;
+
 use BackedEnum;
 use UnitEnum;
 
@@ -43,17 +40,17 @@ class GestionComprasResource extends Resource
     protected static ?string $model = Requisicion::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-storefront';
-    protected static ?string $navigationLabel = 'Gestión de Compras';
-    protected static ?string $slug = 'gestion-compras';
-    protected static ?string $modelLabel = 'Requisición para Compra';
-    protected static ?string $pluralModelLabel = 'Requisiciones para Compra';
-    protected static string|UnitEnum|null $navigationGroup = 'Compras';
+    protected static ?string $navigationLabel = 'Gestión Dirección de Administración';
+    protected static ?string $slug = 'gestion-direccion-administracion';
+    protected static ?string $modelLabel = 'Requisición para Dirección de Administración';
+    protected static ?string $pluralModelLabel = 'Requisiciones para Dirección de Administración';
+    protected static string|UnitEnum|null $navigationGroup = 'Dirección de Administración';
 
 
     public static function canViewAny(): bool
     {
         $user = Auth::user();
-        return $user->rol->nombre == 'Gestor de Compras' || $user->rol->nombre == 'Administrador';
+        return in_array($user->rol->nombre, ['Gestor de Administración', 'Gestor de Compras', 'Administrador']);
     }
 
     public static function form(Schema $schema): Schema
@@ -111,12 +108,10 @@ class GestionComprasResource extends Resource
                                         Placeholder::make('items_header')
                                             ->label('')
                                             ->content(new HtmlString('
-                                                <div class="grid grid-cols-6 gap-4 border-b pb-2 mb-2">
+                                                <div class="grid grid-cols-4 gap-4 border-b pb-2 mb-2">
                                                     <div class="text-sm font-medium text-gray-600 dark:text-gray-300 col-span-2">Descripción</div>
                                                     <div class="text-sm font-medium text-gray-600 dark:text-gray-300">U.M.</div>
                                                     <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Cantidad</div>
-                                                    <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Precio Unitario</div>
-                                                    <div class="text-sm font-medium text-gray-600 dark:text-gray-300">Subtotal</div>
                                                 </div>
                                             ')),
 
@@ -128,30 +123,49 @@ class GestionComprasResource extends Resource
                                                 TextInput::make('descripcion')->labelHidden()->disabled()->columnSpan(2),
                                                 TextInput::make('unidad_medida')->labelHidden()->disabled()->columnSpan(1),
                                                 TextInput::make('cantidad_cotizada')->labelHidden()->numeric()->disabled()->columnSpan(1),
-                                                TextInput::make('precio_unitario')
-                                                    ->labelHidden()
-                                                    ->numeric()
-                                                    ->prefix('$')
-                                                    ->live(onBlur: true)
-                                                    ->afterStateUpdated(function ($state, $set, $get) {
-                                                        $cantidad = $get('cantidad_cotizada') ?? 0;
-                                                        $set('subtotal', round($state * $cantidad, 2));
-                                                    })
-                                                    ->required()
-                                                    ->columnSpan(1),
-                                                TextInput::make('subtotal')
-                                                    ->labelHidden()
-                                                    ->numeric()
-                                                    ->prefix('$')
-                                                    ->disabled()
-                                                    ->dehydrated()
-                                                    ->columnSpan(1)
                                             ])
-                                            ->columns(6)
+                                            ->columns(4)
                                             
                                             ->addable(false)
                                             ->deletable(false)
-                                            ->visible(fn ($record) => $record->requisicion && $record->requisicion->detalles()->exists())
+                                            ->visible(fn ($record) => $record->requisicion && $record->requisicion->detalles()->exists()),
+
+                                        Section::make('Adjuntos de Cotización')
+                                            ->description('Sube el PDF o imagen que respalda esta cotización.')
+                                            ->schema([
+                                                Repeater::make('adjuntos')
+                                                    ->relationship()
+                                                    ->label('Archivos')
+                                                    ->schema([
+                                                        FileUpload::make('ruta_archivo')
+                                                            ->label('Archivo de cotización')
+                                                            ->disk('public')
+                                                            ->directory('cotizaciones')
+                                                            ->preserveFilenames()
+                                                            ->acceptedFileTypes([
+                                                                'application/pdf',
+                                                                'image/jpeg',
+                                                                'image/jpg',
+                                                                'image/png',
+                                                            ])
+                                                            ->maxSize(10240)
+                                                            ->storeFileNamesIn('nombre_archivo')
+                                                            ->required()
+                                                            ->downloadable()
+                                                            ->openable()
+                                                            ->columnSpanFull(),
+                                                        Hidden::make('nombre_archivo'),
+                                                        TextInput::make('comentarios')
+                                                            ->label('Notas')
+                                                            ->maxLength(255),
+                                                    ])
+                                                    ->minItems(1)
+                                                    ->defaultItems(1)
+                                                    ->addActionLabel('Agregar otro adjunto')
+                                                    ->deletable(true)
+                                                    ->reorderable(false)
+                                                    ->collapsed(false)
+                                            ]),
                                     ])
                                     ->maxItems(1)
                                     ->disableItemCreation()
@@ -186,48 +200,56 @@ class GestionComprasResource extends Resource
                                             ))
                                     ]),
 
-                                // Columna Derecha: Carga de Cotizaciones (Nuevos Documentos)
-                                Section::make('Cargar Cotización')
+                                // Columna Derecha: Adjuntos de Cotización
+                                Section::make('Adjuntos de Cotización')
                                     ->columnSpan(1)
-                                    ->description('Suba aquí el PDF de la cotización recibida del proveedor.')
+                                    ->description('Visualiza los archivos cargados para la cotización.')
                                     ->schema([
-                                        // Usamos un Repeater filtrado solo para Cotizaciones.
-                                        // Filament manejará la creación de nuevos registros con este tipo automáticamente.
-                                        // Al estar filtrado, no mostrará ni afectará a los de tipo 'Requisición'.
-                                        Repeater::make('documentos_cotizacion')
-                                            ->relationship('documentos', fn ($query) => $query->where('tipo_documento', 'Cotización'))
-                                            ->label('Archivos de Cotización')
-                                            ->schema([
-                                                FileUpload::make('ruta_archivo')
-                                                    ->label('Archivo PDF o JPG')
-                                                    ->disk('public')
-                                                    ->directory('cotizaciones')
-                                                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/jpg'])
-                                                    ->storeFileNamesIn('nombre_archivo')
-                                                    ->required()
-                                                    ->columnSpanFull()
-                                                    ->downloadable()
-                                                    ->openable(),
-                                                
-                                                // Campo oculto o readonly para nombre_archivo no es necesario si solo se usa internamente,
-                                                // pero Filament necesita saber que existe en el schema si se va a usar en storeFileNamesIn y validaciones.
-                                                // Lo dejamos Hidden para que no moleste en la UI pero exista en el state.
-                                                Hidden::make('nombre_archivo'),
+                                        Placeholder::make('lista_adjuntos_cotizacion')
+                                            ->label('')
+                                            ->content(fn (Requisicion $record) => new HtmlString(
+                                                (function () use ($record) {
+                                                    $adjuntos = $record->cotizaciones
+                                                        ->flatMap(fn ($cotizacion) => $cotizacion->adjuntos)
+                                                        ->map(function ($adjunto) {
+                                                            $url = Storage::url($adjunto->ruta_archivo);
+                                                            $nombre = $adjunto->nombre_archivo ?: basename($adjunto->ruta_archivo);
+                                                            $comentarios = $adjunto->comentarios ? "<p class='text-sm mb-2 italic'>{$adjunto->comentarios}</p>" : '';
+                                                            return "
+                                                                <div class='mb-4 p-2 border rounded'>
+                                                                    <p class='font-bold text-sm mb-2'>Archivo: {$nombre}</p>
+                                                                    {$comentarios}
+                                                                    <iframe src='{$url}' width='100%' height='400px' style='border: none;'></iframe>
+                                                                    <div class='mt-2 text-right'>
+                                                                        <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Abrir en nueva pestaña</a>
+                                                                    </div>
+                                                                </div>
+                                                            ";
+                                                        })
+                                                        ->join('');
 
-                                                TextInput::make('comentarios')
-                                                     ->label('Comentarios / Referencia')
-                                                     ->default('Cotización Proveedor'),
+                                                    // Compatibilidad: mostrar documentos históricos de tipo Cotización
+                                                    $documentosAntiguos = $record->documentos
+                                                        ->where('tipo_documento', 'Cotización')
+                                                        ->map(function ($doc) {
+                                                            $url = Storage::url($doc->ruta_archivo);
+                                                            return "
+                                                                <div class='mb-4 p-2 border rounded'>
+                                                                    <p class='font-bold text-sm mb-2'>{$doc->nombre_archivo}</p>
+                                                                    <p class='text-sm mb-2 italic'>{$doc->comentarios}</p>
+                                                                    <iframe src='{$url}' width='100%' height='400px' style='border: none;'></iframe>
+                                                                    <div class='mt-2 text-right'>
+                                                                        <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Abrir en nueva pestaña</a>
+                                                                    </div>
+                                                                </div>
+                                                            ";
+                                                        })
+                                                        ->join('');
 
-
-                                                Hidden::make('tipo_documento')->default('Cotización'),
-                                            ])
-                                            ->addActionLabel('Agregar otra cotización')
-                                            ->disabled(fn (?Requisicion $record) => isset($record) && $record->id_estatus !== 3)
-                                            ->deletable(false)
-                                            ->reorderable(false)
-                                            ->collapsible()
-                                            ->defaultItems(1)
-                                ]),
+                                                    return $adjuntos ?: ($documentosAntiguos ?: '<p class="text-gray-500 italic">No hay cotizaciones adjuntas.</p>');
+                                                })()
+                                            ))
+                                    ]),
 
                                 Section::make('Órdenes de Compra')
                                     ->columnSpan(1)
@@ -347,8 +369,8 @@ class GestionComprasResource extends Resource
         /** @var \App\Models\Usuarios\Usuario $user */
         $user = Auth::user();
 
-        // Si es Gestor de Compras, filtrar las requisiciones asignadas y con los estatus permitidos
-        if ($user && $user->rol->nombre == 'Gestor de Compras') {
+        // Si es Gestor de Dirección de Administración (o nombre previo), filtrar las requisiciones asignadas y con los estatus permitidos
+        if ($user && in_array($user->rol->nombre, ['Gestor de Administración', 'Gestor de Compras'])) {
             $query->where('id_usuario', $user->id_usuario) // Asignada a este gestor
                   ->whereIn('id_estatus', [3, 4, 5, 6, 7, 8, 9]); // Estatus permitidos
         }

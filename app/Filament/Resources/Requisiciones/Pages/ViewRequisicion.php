@@ -66,6 +66,25 @@ class ViewRequisicion extends ViewRecord
                             ])
                             ->columns(2)
                     ]),
+                Section::make('Artículos')
+                    ->schema([
+                        RepeatableEntry::make('detalles')
+                            ->label(false)
+                            ->schema([
+                                TextEntry::make('descripcion')
+                                    ->label('Descripción')
+                                    ->columnSpanFull(),
+                                TextEntry::make('cantidad')->label('Cantidad'),
+                                TextEntry::make('unidad_medida')->label('Unidad'),
+                                TextEntry::make('total')->label('Total')->money('MXN'),
+                                TextEntry::make('es_activo')
+                                    ->label('Activo')
+                                    ->badge()
+                                    ->color(fn ($state) => $state ? 'success' : 'gray')
+                                    ->formatStateUsing(fn ($state) => $state ? 'Sí' : 'No'),
+                            ])
+                            ->columns(2)
+                    ]),
             ]);
     }
 

@@ -12,11 +12,13 @@ use App\Models\Usuarios\Usuario;
 use App\Notifications\NuevaRequisicionNotification;
 use App\Notifications\RequisicionAsignadaNotification;
 use App\Notifications\RequisicionEnviadaTesoreriaNotification;
+use App\Notifications\NuevoActivoNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use App\Models\Recepcion\Estatus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Enums\RolEnum;
@@ -56,6 +58,14 @@ class Requisicion extends Model
     protected static function booted()
     {
         static::creating(function ($requisicion) {
+            $fechaReferencia = $requisicion->fecha_recepcion ?? now();
+
+            if ($fechaReferencia->day > 8 && (int) $requisicion->id_clasificacion === 2161) {
+                throw ValidationException::withMessages([
+                    'id_clasificacion' => 'La clasificación 2161 (Material de limpieza) solo se puede solicitar durante los primeros 8 días de cada mes.',
+                ]);
+            }
+
             $user = Auth::user();
             if (Auth::check()) {
                 $requisicion->id_solicitante = Auth::id();
@@ -69,13 +79,29 @@ class Requisicion extends Model
             
         });
 
+        static::updating(function (Requisicion $requisicion) {
+            $esMaterialLimpieza = (int) $requisicion->id_clasificacion === 2161;
+            $fechaReferencia = $requisicion->fecha_recepcion ?? now();
+
+            if (
+                $fechaReferencia->day > 8 &&
+                $esMaterialLimpieza &&
+                ($requisicion->isDirty('id_clasificacion') || $requisicion->isDirty('id_estatus'))
+            ) {
+                throw ValidationException::withMessages([
+                    'id_clasificacion' => 'La clasificación 2161 (Material de limpieza) solo se puede solicitar y enviar durante los primeros 8 días de cada mes.',
+                ]);
+            }
+        });
+
         static::created(function (Requisicion $requisicion) {
             // Notificar a secretarias (recepcionistas) y gestores de compras de nueva requisición
             $destinatarios = Usuario::query()
                 ->whereHas('rol', function ($q) {
                     $q->whereIn('nombre', [
                         RolEnum::RECEPCIONISTA->value,
-                        RolEnum::GESTOR_COMPRAS->value,
+                        RolEnum::GESTOR_ADMINISTRACION->value,
+                        'Gestor de Compras', // compatibilidad
                     ]);
                 })
                 ->get();
@@ -126,6 +152,21 @@ class Requisicion extends Model
 
                 if ($recepcionistas->isNotEmpty()) {
                     Notification::send($recepcionistas, new NuevaRequisicionNotification($requisicion));
+                }
+            }
+
+            // Marcar artículos como activos y notificar al solicitante cuando se completa (estatus 8) y clasificación >= 5000
+            if (
+                $requisicion->id_estatus == 8 &&
+                $originalEstatus != 8 &&
+                (int) $requisicion->id_clasificacion >= 5000
+            ) {
+                $requisicion->detalles()
+                    ->where('es_activo', false)
+                    ->update(['es_activo' => true]);
+
+                if ($requisicion->solicitante) {
+                    Notification::send($requisicion->solicitante, new NuevoActivoNotification($requisicion));
                 }
             }
         });

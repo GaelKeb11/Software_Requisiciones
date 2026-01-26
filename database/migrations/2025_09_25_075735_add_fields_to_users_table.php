@@ -9,9 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('apellido_paterno')->after('name');
-            $table->string('apellido_materno')->after('apellido_paterno');
-            $table->string('numero_telefonico')->after('email');
+            // Se permiten nulos para no romper altas existentes
+            $table->string('apellido_paterno')->nullable()->after('name');
+            $table->string('apellido_materno')->nullable()->after('apellido_paterno');
+            $table->string('numero_telefonico')->nullable()->after('email');
         });
     }
 

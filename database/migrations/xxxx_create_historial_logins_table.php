@@ -9,11 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('historial_logins', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('id_usuario')->constrained('users', 'id_usuario');
-    $table->string('ip', 45);
-    $table->timestamps();
-});
+            $table->id();
+            $table->unsignedBigInteger('id_usuario');
+            $table->foreign('id_usuario')
+                ->references('id')
+                ->on('users');
+            $table->string('ip', 45);
+            $table->timestamps();
+        });
     }
 
     public function down(): void

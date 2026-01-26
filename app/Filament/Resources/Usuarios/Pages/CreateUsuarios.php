@@ -28,4 +28,31 @@ class CreateUsuarios extends CreateRecord
     
         return $data;
     }
+
+    /**
+     * Después de crear el usuario, si el rol es Director
+     * asigna el nombre completo como responsable del departamento.
+     */
+    protected function afterCreate(): void
+    {
+        $usuario = $this->record;
+
+        if (! $usuario || $usuario->rol?->nombre !== 'Director') {
+            return;
+        }
+
+        $departamentoId = $usuario->id_departamento;
+        if (! $departamentoId) {
+            return;
+        }
+
+        $departamento = Departamento::find($departamentoId);
+        if (! $departamento) {
+            return;
+        }
+
+        $departamento->update([
+            'responsable' => $usuario->nombreCompleto,
+        ]);
+    }
 }
