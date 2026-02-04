@@ -54,7 +54,10 @@ class UsuariosForm
                                     ->required()
                                     ->maxLength(255)
                                     ->regex('/^[\pL\s\-]+$/u'),
-                            ])->columns(3),
+                            ])->columns([
+                                'default' => 1,
+                                'md' => 3,
+                            ]),
 
                         // PESTAÑA 2: CONTACTO Y ACCESO
                         Tab::make('Contacto y Acceso')
@@ -97,7 +100,10 @@ class UsuariosForm
                                     ->dehydrated(fn (string $operation): bool => $operation === 'create')
                                     ->visible(fn (string $operation): bool => $operation === 'create')
                                     ->extraAttributes(['autocomplete' => 'new-password-field']),
-                            ])->columns(2),
+                            ])->columns([
+                                'default' => 1,
+                                'md' => 2,
+                            ]),
 
                         // PESTAÑA 4: SEGURIDAD (SOLO EN EDICIÓN)
                         Tab::make('Seguridad')

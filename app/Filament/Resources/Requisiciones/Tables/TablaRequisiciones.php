@@ -23,11 +23,24 @@ class TablaRequisiciones
     {
         return $table
             ->columns([
-                TextColumn::make('folio')->label('Folio'),
-                TextColumn::make('concepto')->label('Concepto')->limit(30),
-                TextColumn::make('departamento.nombre')->label('Departamento'),
-                TextColumn::make('clasificacion.nombre')->label('Clasificación'),
-                TextColumn::make('usuario.name')->label('Asignado a'),
+                TextColumn::make('folio')
+                    ->label('Folio')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('concepto')
+                    ->label('Concepto')
+                    ->limit(30)
+                    ->wrap()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('departamento.nombre')
+                    ->label('Departamento')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('clasificacion.nombre')
+                    ->label('Clasificación')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('usuario.name')
+                    ->label('Asignado a')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('estatus.nombre')
                     ->label('Estatus')
                     ->badge()

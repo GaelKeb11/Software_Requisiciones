@@ -40,6 +40,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->spa()
+            ->maxContentWidth('full')
             ->login()
             ->brandLogo(asset('images/logo.png'))
             ->brandLogoHeight('5rem') // Ajusta la altura según sea necesario

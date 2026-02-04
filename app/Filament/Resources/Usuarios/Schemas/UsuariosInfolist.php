@@ -16,7 +16,10 @@ class UsuariosInfolist
             ->schema([
                 Section::make('Datos Personales')
                     ->icon('heroicon-o-user-circle')
-                    ->columns(3)
+                    ->columns([
+                        'default' => 1,
+                        'md' => 3,
+                    ])
                     ->schema([
                         ImageEntry::make('profile_photo_path')
                             ->label('Foto de Perfil')
@@ -29,7 +32,10 @@ class UsuariosInfolist
                 
                 Section::make('Contacto y Acceso')
                     ->icon('heroicon-o-key')
-                    ->columns(2)
+                    ->columns([
+                        'default' => 1,
+                        'md' => 2,
+                    ])
                     ->schema([
                         TextEntry::make('numero_telefonico')->label('Número de Teléfono'),
                         TextEntry::make('email')->label('Correo Electrónico'),
@@ -37,7 +43,10 @@ class UsuariosInfolist
 
                 Section::make('Asignación Organizacional')
                     ->icon('heroicon-o-building-office-2')
-                    ->columns(2)
+                    ->columns([
+                        'default' => 1,
+                        'md' => 2,
+                    ])
                     ->schema([
                         // Mostramos el nombre del rol a través de la relación
                         TextEntry::make('rol.nombre')

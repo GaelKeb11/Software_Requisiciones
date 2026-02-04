@@ -26,10 +26,13 @@ class TablaSolicitudes
                 TextColumn::make('concepto')
                     ->label('Concepto')
                     ->searchable()
-                    ->limit(40),
+                    ->limit(40)
+                    ->wrap()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('departamento.nombre')
                     ->label('Departamento Solicitante')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('estatus.nombre')
                     ->label('Estatus')
                     ->badge()
