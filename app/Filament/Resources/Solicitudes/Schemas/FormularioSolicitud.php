@@ -71,7 +71,10 @@ class FormularioSolicitud
                             Hidden::make('id_estatus')
                                 ->default(1),
                         ])
-                        ->columns(3),
+                        ->columns([
+                            'default' => 1,
+                            'md' => 3,
+                        ]),
 
                     Tab::make('Artículos Solicitados')
                         ->icon('heroicon-o-shopping-cart')
@@ -119,7 +122,11 @@ class FormularioSolicitud
 
                                 ])
                                 ->addActionLabel('+ Añadir Artículo')
-                                ->columns(4)
+                                ->columns([
+                                    'default' => 1,
+                                    'sm' => 2,
+                                    'lg' => 4,
+                                ])
                                 ->defaultItems(1)
                                 ->required()
                                 ->collapsible(),

@@ -294,9 +294,18 @@ class GestionComprasResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('folio')->label('Folio')->searchable()->sortable(),
-                TextColumn::make('concepto')->label('Concepto')->searchable()->limit(30),
-                TextColumn::make('solicitante.name')->label('Solicitante'),
-                TextColumn::make('departamento.nombre')->label('Departamento'),
+                TextColumn::make('concepto')
+                    ->label('Concepto')
+                    ->searchable()
+                    ->limit(30)
+                    ->wrap()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('solicitante.name')
+                    ->label('Solicitante')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('departamento.nombre')
+                    ->label('Departamento')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('fecha_creacion')->label('Fecha')->date()->sortable(),
                 TextColumn::make('estatus.nombre')
                     ->label('Estatus')

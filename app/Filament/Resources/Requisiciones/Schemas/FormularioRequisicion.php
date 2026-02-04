@@ -183,7 +183,10 @@ class FormularioRequisicion
                                             ->maxLength(500)
                                             ->columnSpanFull()
                                             ->disabled(fn ($record) => $record && $record->id_estatus >= 2),
-                                    ])->columns(2),
+                                    ])->columns([
+                                        'default' => 1,
+                                        'md' => 2,
+                                    ]),
                                 Select::make('id_usuario')
                                     ->relationship('usuario', 'name', function ($query) {
                                         return $query->whereHas('rol', function ($query) {
@@ -210,22 +213,30 @@ class FormularioRequisicion
                                                 'Requisición' => 'Requisición',
                                             ])
                                             ->required(),
-                                        FileUpload::make('ruta_archivo')
+                                            FileUpload::make('ruta_archivo')
                                             ->label('Documento')
                                             ->required()
                                             ->storeFileNamesIn('nombre_archivo')
                                             ->disk('public')
                                             ->directory('requisiciones-documentos')
-                                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/jpg'])
+                                            ->acceptedFileTypes([
+                                                'application/pdf', 
+                                                'image/jpeg', 
+                                                'image/jpg',
+                                                'image/png'  // Agregar PNG para móviles
+                                            ])
+                                            ->maxSize(10240)
                                             ->visibility('public')
                                             ->downloadable()
-                                            ->openable(),
-                                        Textarea::make('comentarios')
-                                            ->label('Comentarios')
-                                            ->rows(3)
-                                            ->columnSpanFull(),
+                                            ->openable()
+                                            ->extraInputAttributes([
+                                                'capture' => 'environment'  // Abre la cámara trasera en móviles
+                                            ]),
                                     ])
-                                    ->columns(2)
+                                    ->columns([
+                                        'default' => 1,
+                                        'md' => 2,
+                                    ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Agregar Documento')
                                     ->itemLabel(fn (array $state): ?string => $state['nombre_archivo'] ?? null)
