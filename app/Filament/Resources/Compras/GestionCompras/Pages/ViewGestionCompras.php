@@ -37,7 +37,7 @@ class ViewGestionCompras extends ViewRecord
             $url = Storage::url($doc->ruta_archivo);
 
             $iframe = str_contains($doc->ruta_archivo, '.pdf')
-                ? "<iframe src=\"{$url}\" class=\"w-full h-80 rounded border\" style=\"min-height: 320px;\"></iframe>"
+                ? "<div class=\"w-full max-w-full\"><iframe src=\"{$url}\" class=\"w-full rounded border\" style=\"min-height: 300px; height: 50vh; max-height: 80vh;\"></iframe></div>"
                 : "<div class=\"flex justify-center items-center w-full h-80 bg-gray-50 rounded border\">
                         <p class=\"text-sm text-gray-500\">Vista previa no disponible, utilice la descarga.</p>
                    </div>";

@@ -124,7 +124,11 @@ class GestionComprasResource extends Resource
                                                 TextInput::make('unidad_medida')->labelHidden()->disabled()->columnSpan(1),
                                                 TextInput::make('cantidad_cotizada')->labelHidden()->numeric()->disabled()->columnSpan(1),
                                             ])
-                                            ->columns(4)
+                                            ->columns([
+                                                'default' => 1,
+                                                'sm' => 2,
+                                                'lg' => 4,
+                                            ])
                                             
                                             ->addable(false)
                                             ->deletable(false)
@@ -190,7 +194,9 @@ class GestionComprasResource extends Resource
                                                     return "
                                                         <div class='mb-4 p-2 border rounded'>
                                                             <p class='font-bold text-sm mb-2'>{$doc->nombre_archivo}</p>
-                                                            <iframe src='{$url}' width='100%' height='400px' style='border: none;'></iframe>
+                                                            <div class='w-full max-w-full'>
+                                                                <iframe src='{$url}' class='w-full rounded' style='border: none; min-height: 300px; height: 50vh; max-height: 80vh;'></iframe>
+                                                            </div>
                                                             <div class='mt-2 text-right'>
                                                                 <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Abrir en nueva pestaña</a>
                                                             </div>
@@ -219,7 +225,9 @@ class GestionComprasResource extends Resource
                                                                 <div class='mb-4 p-2 border rounded'>
                                                                     <p class='font-bold text-sm mb-2'>Archivo: {$nombre}</p>
                                                                     {$comentarios}
-                                                                    <iframe src='{$url}' width='100%' height='400px' style='border: none;'></iframe>
+                                                                    <div class='w-full max-w-full'>
+                                                                        <iframe src='{$url}' class='w-full rounded' style='border: none; min-height: 300px; height: 50vh; max-height: 80vh;'></iframe>
+                                                                    </div>
                                                                     <div class='mt-2 text-right'>
                                                                         <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Abrir en nueva pestaña</a>
                                                                     </div>
@@ -237,7 +245,9 @@ class GestionComprasResource extends Resource
                                                                 <div class='mb-4 p-2 border rounded'>
                                                                     <p class='font-bold text-sm mb-2'>{$doc->nombre_archivo}</p>
                                                                     <p class='text-sm mb-2 italic'>{$doc->comentarios}</p>
-                                                                    <iframe src='{$url}' width='100%' height='400px' style='border: none;'></iframe>
+                                                                    <div class='w-full max-w-full'>
+                                                                        <iframe src='{$url}' class='w-full rounded' style='border: none; min-height: 300px; height: 50vh; max-height: 80vh;'></iframe>
+                                                                    </div>
                                                                     <div class='mt-2 text-right'>
                                                                         <a href='{$url}' target='_blank' class='text-primary-600 hover:underline text-sm'>Abrir en nueva pestaña</a>
                                                                     </div>
