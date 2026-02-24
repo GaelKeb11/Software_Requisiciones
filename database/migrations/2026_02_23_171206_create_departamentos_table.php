@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->text('app_authentication_secret')->nullable()->after('password');
+        Schema::create('departamentos', function (Blueprint $table) {
+            $table->id('id_departamento');
+            $table->string('nombre');
+            $table->string('responsable', 100);
+            $table->string('prefijo', 10);
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('app_authentication_secret');
-        });
+        Schema::dropIfExists('departamentos');
     }
 };

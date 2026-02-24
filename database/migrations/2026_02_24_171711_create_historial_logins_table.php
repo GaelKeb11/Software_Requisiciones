@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('profile_photo_path', 2048)->nullable()->after('password');
+        Schema::create('historial_logins', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('id_usuario')->constrained('users', 'id_usuario');
+            $table->string('ip', 45);
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('historial_logins');
     }
 };

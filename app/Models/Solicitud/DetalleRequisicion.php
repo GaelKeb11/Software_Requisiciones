@@ -21,10 +21,14 @@ class DetalleRequisicion extends Model
         'descripcion',
         'total',
         'es_activo',
+        'id_solicitante',
+        'id_departamento',
+        'id_estatus',
+        'id_usuario',
     ];
 
     protected $casts = [
-        'descripcion' => 'encrypted',
+        
         'total' => 'decimal:2',
         'es_activo' => 'boolean',
     ];

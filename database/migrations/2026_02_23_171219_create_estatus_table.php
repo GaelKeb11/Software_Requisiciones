@@ -6,19 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('clasificaciones', function (Blueprint $table) {
-            $table->id('id_clasificacion');
+        Schema::create('estatus', function (Blueprint $table) {
+            $table->id('id_estatus');
             $table->string('nombre', 50);
-            $table->text('descripcion')->nullable();
+            $table->string('color', 20)->default('gray');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('clasificaciones');
+        Schema::dropIfExists('estatus');
     }
 };

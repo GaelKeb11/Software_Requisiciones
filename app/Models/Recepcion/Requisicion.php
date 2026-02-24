@@ -48,13 +48,7 @@ class Requisicion extends Model
         'fecha_entrega'
     ];
 
-    protected $casts = [
-        'fecha_creacion' => 'date',
-        'fecha_recepcion' => 'date',
-        'fecha_entrega' => 'date',
-        'concepto' => 'encrypted',
-    ];
-
+    
     protected static function booted()
     {
         static::creating(function ($requisicion) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Recepcion;
 
 use App\Models\Recepcion\Requisicion;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class RequisicionFactory extends Factory
 {
     protected $model = Requisicion::class;
+    
 
     public function definition()
     {
@@ -19,7 +20,7 @@ class RequisicionFactory extends Factory
             'concepto' => $this->faker->sentence(),
             'id_departamento' => \App\Models\Recepcion\Departamento::factory(),
             'id_clasificacion' => \App\Models\Recepcion\Clasificacion::factory(),
-            'id_usuario' => \App\Models\User::factory(),
+            'id_usuario' => \App\Models\Usuarios\Usuario::factory(),
             'id_estatus' => \App\Models\Recepcion\Estatus::factory()
         ];
     }
