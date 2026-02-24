@@ -6,22 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('historial_logins', function (Blueprint $table) {
+        Schema::create('intentos_fallidos_logins', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_usuario');
-            $table->foreign('id_usuario')
-                ->references('id')
-                ->on('users');
+            $table->string('email');
             $table->string('ip', 45);
+            $table->text('user_agent')->nullable();
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('historial_logins');
+        Schema::dropIfExists('intentos_fallidos_logins');
     }
 };
-

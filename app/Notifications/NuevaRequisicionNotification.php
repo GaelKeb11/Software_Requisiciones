@@ -7,7 +7,7 @@ use App\Models\Recepcion\Requisicion;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Messages\VonageMessage;
+
 use Illuminate\Notifications\Notification;
 
 class NuevaRequisicionNotification extends Notification implements ShouldQueue
@@ -18,17 +18,17 @@ class NuevaRequisicionNotification extends Notification implements ShouldQueue
     {
     }
 
+    /**
+     * Definimos los canales de notificación: Correo y Base de Datos (Panel de notificaciones)
+     */
     public function via(object $notifiable): array
     {
-        $channels = ['mail', 'database'];
-
-        if ($this->shouldSendSms($notifiable)) {
-            $channels[] = 'vonage';
-        }
-
-        return $channels;
+        return ['mail', 'database'];
     }
 
+    /**
+     * Configuración del correo electrónico
+     */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
@@ -43,17 +43,9 @@ class NuevaRequisicionNotification extends Notification implements ShouldQueue
             ->line('Gracias.');
     }
 
-    public function toVonage(object $notifiable): VonageMessage
-    {
-        $text = sprintf(
-            'Nueva requisición %s - %s',
-            $this->requisicion->folio,
-            str($this->requisicion->concepto)->limit(60)
-        );
-
-        return (new VonageMessage)->content($text);
-    }
-
+    /**
+     * Datos que se guardarán en la tabla 'notifications' de la base de datos
+     */
     public function toArray(object $notifiable): array
     {
         return [
@@ -66,10 +58,7 @@ class NuevaRequisicionNotification extends Notification implements ShouldQueue
         ];
     }
 
-    private function shouldSendSms(object $notifiable): bool
-    {
-        return filled($notifiable->numero_telefonico) && filled(config('services.vonage.key'));
-    }
+    
 
     private function viewUrl(): string
     {

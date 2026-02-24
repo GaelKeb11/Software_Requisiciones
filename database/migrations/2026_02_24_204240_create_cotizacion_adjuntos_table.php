@@ -13,19 +13,12 @@ return new class extends Migration
     {
         Schema::create('cotizacion_adjuntos', function (Blueprint $table) {
             $table->id('id_adjunto');
-
-            $table->unsignedBigInteger('id_cotizacion');
-            $table->foreign('id_cotizacion')
-                ->references('id_cotizacion')
-                ->on('cotizaciones')
-                ->onDelete('cascade');
-
+            $table->foreignId('id_cotizacion')->constrained('cotizaciones', 'id_cotizacion')->cascadeOnDelete();
             $table->string('nombre_archivo')->nullable();
             $table->string('ruta_archivo');
             $table->string('mime_type')->nullable();
             $table->unsignedBigInteger('size')->nullable();
             $table->text('comentarios')->nullable();
-
             $table->timestamps();
         });
     }

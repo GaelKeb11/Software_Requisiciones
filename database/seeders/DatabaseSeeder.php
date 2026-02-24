@@ -3,8 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Usuarios\Usuario;
-use App\Models\Role;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,25 +13,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. Cargamos los catálogos con los datos reales que creamos
+        $this->call([
+            DepartamentoSeeder::class, // Tus 52 departamentos reales
+            EstatusSeeder::class,      // Tus 9 estatus reales
+            ClasificacionSeeder::class,
+            RolSeeder::class,
+        ]);
 
-       // User::factory()->create([
-            //'name' => 'Test User',
-            //'email' => 'test@example.com',
-        //]);
-
-        \App\Models\Recepcion\Departamento::factory(5)->create();
-        \App\Models\Recepcion\Clasificacion::factory(3)->create();
-        \App\Models\Recepcion\Estatus::factory()->create(['nombre' => 'Recepcionada']);
-        \App\Models\Recepcion\Estatus::factory()->create(['nombre' => 'Asignada']);
-        \App\Models\Recepcion\Requisicion::factory(20)->create();
-
+       
         Usuario::create([
             'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
-            'id_departamento' => 1, // <-- Nuevo campo
-            'id_rol' => 1,          // <-- Nuevo campo
+            'apellido_paterno' => 'Admin',
+            'apellido_materno' => 'Admin',
+            'email' => 'gaelkebcauich@gmail.com',
+            'password' => bcrypt('12345678'),
+            'id_departamento' => 30, // Dirección de Tecnologías de la Información y Conectividad (según tu lista)
+            'id_rol' => 7,          // ID de Administrador (según tu SQL)
         ]);
+
     }
 }

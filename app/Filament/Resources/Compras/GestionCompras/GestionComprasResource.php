@@ -118,11 +118,11 @@ class GestionComprasResource extends Resource
                                         Repeater::make('detalles')
                                             ->relationship()
                                             ->label('Ítems a Cotizar')
-                                            ->labelHidden()
+                                            ->hiddenLabel()
                                             ->schema([
-                                                TextInput::make('descripcion')->labelHidden()->disabled()->columnSpan(2),
-                                                TextInput::make('unidad_medida')->labelHidden()->disabled()->columnSpan(1),
-                                                TextInput::make('cantidad_cotizada')->labelHidden()->numeric()->disabled()->columnSpan(1),
+                                                TextInput::make('descripcion')->hiddenLabel()->disabled()->columnSpan(2),
+                                                TextInput::make('unidad_medida')->hiddenLabel()->disabled()->columnSpan(1),
+                                                TextInput::make('cantidad_cotizada')->hiddenLabel()->numeric()->disabled()->columnSpan(1),
                                             ])
                                             ->columns([
                                                 'default' => 1,

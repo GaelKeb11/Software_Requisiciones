@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id('id_detalle_orden_compra');
             $table->foreignId('id_orden_compra')->constrained('ordenes_compra', 'id_orden_compra')->cascadeOnDelete();
             $table->foreignId('id_detalle_requisicion')->constrained('detalle_requisicions', 'id_detalle_requisicion');
-            $table->decimal('precio_unitario', 10, 2);
-            $table->decimal('subtotal', 10, 2);
+            $table->text('precio_unitario'); // Text por encriptación
+            $table->text('subtotal'); // Text por encriptación
             $table->timestamps();
         });
     }

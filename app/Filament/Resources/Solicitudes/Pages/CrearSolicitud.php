@@ -62,7 +62,12 @@ class CrearSolicitud extends CreateRecord
         }
 
         $data['id_departamento'] = $user->id_departamento;
-        $data['id_solicitante'] = $user->id_usuario;
+
+        //Asignar ID del solicitante
+        $data['id_solicitante'] = Auth::user()->id_usuario;
+
+        //Asignar ID del usuario
+        $data['id_usuario'] = Auth::user()->id_usuario;
 
         return $data;
     }
