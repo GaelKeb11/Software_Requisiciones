@@ -28,7 +28,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requsicion 1',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 8 ,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 8
@@ -41,7 +41,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requisicion 2',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 12 ,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 8
@@ -55,7 +55,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requisicion 3',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 14 ,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 2
@@ -68,7 +68,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requisicion 4',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 35 ,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 2
@@ -81,7 +81,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requisicion 5',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 49 ,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 4
@@ -94,7 +94,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requisicion 6',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 41,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 3
@@ -107,7 +107,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requisicion 7',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 113 ,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 6
@@ -120,7 +120,7 @@ class RequisicionSeeder extends Seeder
             'hora_recepcion' => Carbon::now()->toDateTimeString(),
             'concepto' => 'Prueba de requisicion 8',
             'id_departamento' => 27,
-            'id_clasificacion' => Clasificacion::inRandomOrder()->first()->id_clasificacion ,
+            'id_clasificacion' => 149 ,
             'id_usuario' => 1,
             'id_solicitante' => 2,
             'id_estatus' => 8

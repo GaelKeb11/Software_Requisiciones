@@ -89,7 +89,7 @@ class FormularioSolicitud
                                         ->required()
                                         ->minValue(1) // Validación de valor mínimo
                                         ->default(1),
-                                    Select::make('Tipo de Unidad')
+                                    Select::make('unidad_medida')
                                         ->label('Tipo de Unidad')
                                         ->options([
                                             'Materiales	' => 'Materiales',

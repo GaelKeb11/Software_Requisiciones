@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
         //Requisicion::factory(10)->create();
         $this->call([
             RequisicionSeeder::class,
+	    DetalleRequisicionSeeder::class,
         ]);      
 
         
