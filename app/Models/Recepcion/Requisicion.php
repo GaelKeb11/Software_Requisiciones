@@ -23,10 +23,11 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Enums\RolEnum;
 use App\Mail\RequisicionCreada;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Requisicion extends Model
 {
+    use HasFactory;
     use SoftDeletes;
     use LogsActivity;
 
@@ -48,10 +49,15 @@ class Requisicion extends Model
         'fecha_entrega'
     ];
 
+    protected $casts = [
+        'fecha_recepcion' => 'datetime',
+    ];
+
     
     protected static function booted()
     {
         static::creating(function ($requisicion) {
+
             $fechaReferencia = $requisicion->fecha_recepcion ?? now();
 
             if ($fechaReferencia->day > 8 && (int) $requisicion->id_clasificacion === 2161) {
@@ -63,11 +69,19 @@ class Requisicion extends Model
             $user = Auth::user();
             if (Auth::check()) {
                 $requisicion->id_solicitante = Auth::id();
+
                 $requisicion->id_departamento = $user->id_departamento;
+                
                 if (!isset($requisicion->id_estatus)) {
                     $requisicion->id_estatus = 2;
                 }
-            } else {
+            }elseif(!isset($user->id_usuario)){
+                
+                if (!isset($requisicion->id_estatus)) {
+                    $requisicion->id_estatus = 2;
+                }
+            }
+             else {
                 throw new \Exception('Usuario no autenticado');
             }
             
